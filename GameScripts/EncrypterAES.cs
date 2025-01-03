@@ -8,5 +8,6 @@ namespace RC_save_editor.GameScripts
 {
     internal class EncrypterAES
     {
+
     }
 }
