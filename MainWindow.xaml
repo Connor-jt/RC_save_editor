@@ -7,20 +7,14 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="550" Width="650">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="300"/>
-        </Grid.ColumnDefinitions>
-
-        <StackPanel x:Name="field_panel" Grid.Column="1" Margin="5,21,5,5" Orientation="Vertical">
-
-        </StackPanel>
 
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="19"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+            
+            
             <StackPanel Orientation="Horizontal" Margin="2,1,0,0">
                 <Button Content="Engineer"      Padding="4,0,4,0" Height="19" Click="NavigateToEngineer"/>
                 <Button Content="Specialists"   Padding="4,0,4,0" Height="19" Click="NavigateToSpecialists"/>
@@ -28,61 +22,88 @@
                 <Button Content="Drops"         Padding="4,0,4,0" Height="19" Click="NavigateToDrops"/>
                 <Button Content="Relics"        Padding="4,0,4,0" Height="19" Click="NavigateToRelics"/>
                 <Button Content="Upgrades"      Padding="4,0,4,0" Height="19" Click="NavigateToUpgrades"/>
+                <Button Content="Metadata"      Padding="4,0,4,0" Height="19" Click="NavigateToMetadata"/>
             </StackPanel>
 
             <Border Grid.Row="1" Background="#FFE4E4E4" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="1,1,0,1">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="1" Margin="2,0,0,0">
+                    <!-- Metadata field page -->
+                    <Grid x:Name="metadata_page" Visibility="Collapsed">
+                        <StackPanel x:Name="field_panel" Grid.Column="1" Margin="5,21,5,5" Orientation="Vertical">
 
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="24"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock x:Name="entry_label" Text="Sample Field" VerticalAlignment="Center" FontSize="16"/>
-                        <TextBlock x:Name="entry_id" Grid.Row="1" Text="Sample ID" VerticalAlignment="Center" Foreground="#FFAB0000"/>
-                        <TextBlock x:Name="entry_desc" Grid.Row="2" TextWrapping="Wrap" Text="Sample Desc 12354 12321 21312 12312" Foreground="#FF4C4C4C"/>
-                        <TextBlock x:Name="entry_extra" Grid.Row="3" TextWrapping="Wrap" Text="Tank, Tree, Engineer" Foreground="#FF018C10"/>
-                        <Button Content="Assign" Padding="10,0,10,0" Grid.Row="4" HorizontalAlignment="Left" Height="19"/>
-
-                        <Grid Grid.Row="5">
+                        </StackPanel>
+                    </Grid>
+                    <!-- ID field assign page -->
+                    <Grid x:Name="id_list_page">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <GridSplitter Grid.Column="0" Width="3" Background="Transparent" HorizontalAlignment="Right"/>
+                        <GridSplitter Grid.Column="1" Width="3" Background="Transparent" HorizontalAlignment="Right"/>
+                    
+                        <Grid Grid.Column="2" Margin="2,0,0,0">
 
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="5"/>
-                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="21"/>
+                                <RowDefinition Height="16"/>
+                                <RowDefinition Height="80"/>
+                                <RowDefinition Height="16"/>
                                 <RowDefinition Height="24"/>
+                                <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <Border Grid.Row="1" Background="White" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="0,0,2,0" >
-                                <ListView SelectionChanged="ListView_SelectionChanged"/>
-                            </Border>
-                            <Button Content="Remove" Padding="10,0,10,0" Grid.Row="2" HorizontalAlignment="Left" Height="19"/>
-                        </Grid>
-                    </Grid>
+                            <TextBlock x:Name="entry_label" Text="Sample Field" VerticalAlignment="Center" FontSize="16"/>
+                            <TextBlock x:Name="entry_id" Grid.Row="1" Text="Sample ID" VerticalAlignment="Center" Foreground="#FFAB0000"/>
+                            <TextBlock x:Name="entry_desc" Grid.Row="2" TextWrapping="Wrap" Text="Sample Desc 12354 12321 21312 12312" Foreground="#FF4C4C4C"/>
+                            <TextBlock x:Name="entry_extra" Grid.Row="3" TextWrapping="Wrap" Text="Tank, Tree, Engineer" Foreground="#FF018C10"/>
+                            <Button x:Name="assign_button" Content="Assign" Padding="10,0,10,0" Grid.Row="4" HorizontalAlignment="Left" Height="19" Click="AssignSelected"/>
 
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="20"/>
-                            <RowDefinition Height="24"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock x:Name="select_label" Text="Select [FIELD]"  FontSize="16" Margin="2,0,0,0"/>
-                        <TextBox x:Name="search_filter" Grid.Row="1" Margin="2,2,2,2" Grid.ColumnSpan="2" TextChanged="SearchFilterUpdated"/>
-                        <Border Grid.Row="2" Background="White" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="2,0,2,2" Grid.ColumnSpan="2">
-                            <ListView x:Name="entries_listview" SelectionChanged="ListView_SelectionChanged"/>
-                        </Border>
+                            <Grid Grid.Row="5">
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="5"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="24"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="1" Background="White" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="0,0,2,0" >
+                                    <ListView x:Name="assigned_listview"/>
+                                </Border>
+                                <Button x:Name="remove_button" Content="Remove" Padding="10,0,10,0" Grid.Row="2" HorizontalAlignment="Left" Height="19" Click="RemoveSelected" />
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="20"/>
+                                <RowDefinition Height="24"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="select_label" Text="Select [FIELD]"  FontSize="16" Margin="2,0,0,0"/>
+                            <TextBox x:Name="search_filter" Grid.Row="1" Margin="2,2,2,2" Grid.ColumnSpan="2" TextChanged="SearchFilterUpdated"/>
+                            <Border Grid.Row="2" Background="White" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="2,0,2,2" Grid.ColumnSpan="2">
+                                <ListView x:Name="entries_listview" SelectionChanged="ListView_SelectionChanged"/>
+                            </Border>
+                        </Grid>
+                        
+                        <Grid Grid.Column="0" Visibility="Collapsed">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="20"/>
+                                <RowDefinition Height="24"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="select_label_extra" Text="Select [FIELD]"  FontSize="16" Margin="2,0,0,0"/>
+                            <TextBox x:Name="search_filter_extra" Grid.Row="1" Margin="2,2,2,2" Grid.ColumnSpan="2" TextChanged="SearchFilterUpdated"/>
+                            <Border Grid.Row="2" Background="White" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="2,0,2,2" Grid.ColumnSpan="2">
+                                <ListView x:Name="entries_listview_extra"/>
+                            </Border>
+                        </Grid>
                     </Grid>
                 </Grid>
             </Border>
         </Grid>
-        <GridSplitter Grid.Column="0" Width="2" Background="Transparent" HorizontalAlignment="Right" Margin="0,1,0,1"/>
+        
     </Grid>
 </Window>

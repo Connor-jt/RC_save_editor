@@ -14,6 +14,7 @@ using System.Text.Json;
 using static RC_save_editor.DataStuff;
 using Newtonsoft.Json;
 using System.Linq;
+using System.ComponentModel;
 
 namespace RC_save_editor
 {
@@ -193,6 +194,7 @@ namespace RC_save_editor
                 entry_desc.Text = "...";
                 entry_extra.Text = "...";
                 UpdateHeader();
+                assign_button.IsEnabled = false;
                 return;}
 
             string id = IDs_list[entries_listview.SelectedIndex];
@@ -205,21 +207,25 @@ namespace RC_save_editor
                 entry_id.Text = id;
                 entry_desc.Text = entity_desc[id];
                 entry_extra.Text = entity_roles[id].ToString(); // this should transcribe the role uint into their respective strings
+                assign_button.IsEnabled = true;
             } else if (current_view == view_mode.Relics){
                 entry_label.Text = relic_names[id];
                 entry_id.Text = id;
                 entry_desc.Text = relic_desc[id];
                 entry_extra.Text = "...";
+                assign_button.IsEnabled = true;
             } else if (current_view == view_mode.Upgrades){
                 entry_label.Text = upgrade_names[id];
                 entry_id.Text = id;
                 entry_desc.Text = upgrade_desc[id];
                 entry_extra.Text = "...";
+                assign_button.IsEnabled = true;
             } else { // just clear it
                 entry_label.Text = "No page open?";
                 entry_id.Text = "...";
                 entry_desc.Text = "...";
                 entry_extra.Text = "...";
+                assign_button.IsEnabled = false;
             }
             UpdateHeader();
         }
@@ -238,7 +244,6 @@ namespace RC_save_editor
                 select_label.Text = $"Select Upgrades ({entries_list.Count}/{upgrade_names.Count})";
             else 
                 select_label.Text = "Select [none]";
-            
         }
 
         private void SearchFilterUpdated(object sender, TextChangedEventArgs e)
@@ -253,7 +258,10 @@ namespace RC_save_editor
             Blueprints,
             Drops,
             Relics,
-            Upgrades
+            Upgrades,
+
+            metadata,
+            stagemap
         }
         view_mode current_view = view_mode.None;
 
@@ -301,38 +309,129 @@ namespace RC_save_editor
                 entries_listview.SelectedIndex = -1;
         }
 
-        private void NavigateToEngineer(object sender, RoutedEventArgs e)
-        {
-            // switch to entities mode, switch to engineer select
-            current_view = view_mode.Engineer;
-            ReloadEntries();
-            
+        void ReloadAssigned() {
+            assigned_entries_list = new();
+            assigned_upgrades_index_map = new();
+            remove_button.IsEnabled = true;
+
+            if (current_view == view_mode.Engineer){
+                remove_button.IsEnabled = false;
+                assigned_entries_list.Add(entity_names[savegame.engineer]);
+
+            } else if (current_view == view_mode.Specialists){
+                foreach (string id in savegame.specialists)
+                    assigned_entries_list.Add(entity_names[id]);
+
+            } else if (current_view == view_mode.Blueprints){
+                foreach (string id in savegame.blueprints)
+                    assigned_entries_list.Add(entity_names[id]);
+
+            } else if (current_view == view_mode.Drops){
+                foreach (string id in savegame.drops)
+                    assigned_entries_list.Add(entity_names[id]);
+
+            } else if (current_view == view_mode.Relics){
+                foreach (string id in savegame.relics)
+                    assigned_entries_list.Add(relic_names[id]);
+
+            } else if (current_view == view_mode.Upgrades){
+                for (int i = 0; i < savegame.upgrades.Count; i++){
+                    var entry = savegame.upgrades[i];
+                    for (int j = 0; j < entry.Value.Count; j++){
+                        assigned_entries_list.Add(entity_names[entry.Key] + " -> " + upgrade_names[entry.Value[j]]);
+                        assigned_upgrades_index_map.Add(new(i,j));
+                    }
+                }
+            }
+
+            assigned_listview.ItemsSource = assigned_entries_list;
+            if (assigned_entries_list.Count <= 0){
+                remove_button.IsEnabled = false;
+                assigned_listview.SelectedIndex = -1;
+            } else assigned_listview.SelectedIndex = 0;
         }
-        private void NavigateToSpecialists(object sender, RoutedEventArgs e)
-        {
-            current_view = view_mode.Specialists;
-            ReloadEntries();
+        List<string> assigned_entries_list = new();
+        List<KeyValuePair<int, int>> assigned_upgrades_index_map = new();
+        
+        private void AssignSelected(object sender, RoutedEventArgs e){
+            if (entries_listview.SelectedIndex < 0 || entries_listview.SelectedIndex >= IDs_list.Count)
+                return;
+
+            if (current_view == view_mode.Engineer)
+                savegame.engineer = IDs_list[entries_listview.SelectedIndex];
+            else if (current_view == view_mode.Specialists)
+                savegame.specialists.Add(IDs_list[entries_listview.SelectedIndex]);
+            else if (current_view == view_mode.Blueprints)
+                savegame.blueprints.Add(IDs_list[entries_listview.SelectedIndex]);
+            else if (current_view == view_mode.Drops)
+                savegame.drops.Add(IDs_list[entries_listview.SelectedIndex]);
+            else if (current_view == view_mode.Relics)
+                savegame.relics.Add(IDs_list[entries_listview.SelectedIndex]);
+            else if (current_view == view_mode.Upgrades){
+                // do nothing for now!!!!
+            }
+
+            ReloadAssigned();
         }
-        private void NavigateToBlueprints(object sender, RoutedEventArgs e)
-        {
-            current_view = view_mode.Blueprints;
-            ReloadEntries();
+        private void RemoveSelected(object sender, RoutedEventArgs e){
+            if (assigned_listview.SelectedIndex < 0 || assigned_listview.SelectedIndex >= assigned_entries_list.Count)
+                return;
+
+            if (current_view == view_mode.Specialists)
+                savegame.specialists.RemoveAt(assigned_listview.SelectedIndex);
+            else if (current_view == view_mode.Blueprints)
+                savegame.blueprints.RemoveAt(assigned_listview.SelectedIndex);
+            else if (current_view == view_mode.Drops)
+                savegame.drops.RemoveAt(assigned_listview.SelectedIndex);
+            else if (current_view == view_mode.Relics)
+                savegame.relics.RemoveAt(assigned_listview.SelectedIndex);
+            else if (current_view == view_mode.Upgrades){
+                var index = assigned_upgrades_index_map[assigned_listview.SelectedIndex];
+                savegame.upgrades[index.Key].Value.RemoveAt(index.Value);
+                if (savegame.upgrades[index.Key].Value.Count <= 0)
+                    savegame.upgrades.RemoveAt(index.Key);
+            } else return;
+
+            ReloadAssigned();
         }
-        private void NavigateToDrops(object sender, RoutedEventArgs e)
-        {
-            current_view = view_mode.Drops;
-            ReloadEntries();
+
+        void SwapView(view_mode new_view){
+            if (new_view == current_view) return;
+
+            if (new_view == view_mode.Engineer
+            ||  new_view == view_mode.Specialists
+            ||  new_view == view_mode.Blueprints
+            ||  new_view == view_mode.Drops
+            ||  new_view == view_mode.Relics
+            ||  new_view == view_mode.Upgrades){
+                
+                metadata_page.Visibility = Visibility.Collapsed;
+                id_list_page.Visibility = Visibility.Visible;
+                //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
+
+                current_view = new_view;
+                ReloadEntries();
+                ReloadAssigned();
+                return;
+            }
+
+            if (new_view == view_mode.metadata){
+                
+                metadata_page.Visibility = Visibility.Visible;
+                id_list_page.Visibility = Visibility.Collapsed;
+                //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
+                
+                current_view = new_view;
+                return;
+            }
         }
-        private void NavigateToRelics(object sender, RoutedEventArgs e)
-        {
-            current_view = view_mode.Relics;
-            ReloadEntries();
-        }
-        private void NavigateToUpgrades(object sender, RoutedEventArgs e)
-        {
-            current_view = view_mode.Upgrades;
-            ReloadEntries();
-        }
+        private void NavigateToEngineer(object sender, RoutedEventArgs e)    => SwapView(view_mode.Engineer);
+        private void NavigateToSpecialists(object sender, RoutedEventArgs e) => SwapView(view_mode.Specialists);
+        private void NavigateToBlueprints(object sender, RoutedEventArgs e)  => SwapView(view_mode.Blueprints);
+        private void NavigateToDrops(object sender, RoutedEventArgs e)       => SwapView(view_mode.Drops);
+        private void NavigateToRelics(object sender, RoutedEventArgs e)      => SwapView(view_mode.Relics);
+        private void NavigateToUpgrades(object sender, RoutedEventArgs e)    => SwapView(view_mode.Upgrades);
+        private void NavigateToMetadata(object sender, RoutedEventArgs e)    => SwapView(view_mode.metadata);
 
     }
 }
