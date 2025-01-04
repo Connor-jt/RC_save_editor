@@ -31,7 +31,7 @@ namespace RC_save_editor
             this.isfloat = isfloat;
 
             if (context != null)
-                context_box.Content = context;
+                context_box.Text = context;
 
             if (current_value != null)
                 value_box.Text = current_value;
