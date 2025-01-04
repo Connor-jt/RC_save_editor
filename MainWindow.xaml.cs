@@ -192,6 +192,7 @@ namespace RC_save_editor
                 entry_id.Text = "...";
                 entry_desc.Text = "...";
                 entry_extra.Text = "...";
+                UpdateHeader();
                 return;}
 
             string id = IDs_list[entries_listview.SelectedIndex];
@@ -220,9 +221,27 @@ namespace RC_save_editor
                 entry_desc.Text = "...";
                 entry_extra.Text = "...";
             }
+            UpdateHeader();
+        }
+        void UpdateHeader(){
+            if (current_view == view_mode.Engineer)
+                select_label.Text = $"Select Engineer ({entries_list.Count}/{entity_names.Count})";
+            else if (current_view == view_mode.Specialists)
+                select_label.Text = $"Select Specialists ({entries_list.Count}/{entity_names.Count})";
+            else if (current_view == view_mode.Blueprints)
+                select_label.Text = $"Select Blueprints ({entries_list.Count}/{entity_names.Count})";
+            else if (current_view == view_mode.Drops)
+                select_label.Text = $"Select Drops ({entries_list.Count}/{entity_names.Count})";
+            else if (current_view == view_mode.Relics)
+                select_label.Text = $"Select Relics ({entries_list.Count}/{relic_names.Count})";
+            else if (current_view == view_mode.Upgrades)
+                select_label.Text = $"Select Upgrades ({entries_list.Count}/{upgrade_names.Count})";
+            else 
+                select_label.Text = "Select [none]";
+            
         }
 
-        private void SearchFilterUpdated(object sender, TextCompositionEventArgs e)
+        private void SearchFilterUpdated(object sender, TextChangedEventArgs e)
         => ReloadEntries();
         
 
@@ -264,7 +283,7 @@ namespace RC_save_editor
                 entries_listview.SelectedIndex = -1;
                 entry_extra.Visibility = Visibility.Collapsed;
             }
-
+            ListView_SelectionChanged(null, null); // doesn't really matter if this gets called twice, just gotta make sure it gets called at least once
         }
         void populate_from(Dictionary<string, string> dict){
             IDs_list = new();
@@ -286,39 +305,34 @@ namespace RC_save_editor
         {
             // switch to entities mode, switch to engineer select
             current_view = view_mode.Engineer;
-            select_label.Text = "Select Engineer";
             ReloadEntries();
             
         }
         private void NavigateToSpecialists(object sender, RoutedEventArgs e)
         {
             current_view = view_mode.Specialists;
-            select_label.Text = "Select Specialist(s)";
             ReloadEntries();
         }
         private void NavigateToBlueprints(object sender, RoutedEventArgs e)
         {
             current_view = view_mode.Blueprints;
-            select_label.Text = "Select Blueprints";
             ReloadEntries();
         }
         private void NavigateToDrops(object sender, RoutedEventArgs e)
         {
             current_view = view_mode.Drops;
-            select_label.Text = "Select Drops";
             ReloadEntries();
         }
         private void NavigateToRelics(object sender, RoutedEventArgs e)
         {
             current_view = view_mode.Relics;
-            select_label.Text = "Select Relics";
             ReloadEntries();
         }
         private void NavigateToUpgrades(object sender, RoutedEventArgs e)
         {
             current_view = view_mode.Upgrades;
-            select_label.Text = "Select Upgrades";
             ReloadEntries();
         }
+
     }
 }
