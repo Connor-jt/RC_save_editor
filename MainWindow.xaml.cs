@@ -198,6 +198,8 @@ namespace RC_save_editor
                 return;}
 
             string id = IDs_list[entries_listview.SelectedIndex];
+            
+            
 
             if (current_view == view_mode.Engineer 
             ||  current_view == view_mode.Specialists
@@ -248,6 +250,8 @@ namespace RC_save_editor
 
         private void SearchFilterUpdated(object sender, TextChangedEventArgs e)
         => ReloadEntries();
+        private void FilterBoxChecked(object sender, RoutedEventArgs e)
+        => ReloadEntries();
         
 
 
@@ -268,21 +272,28 @@ namespace RC_save_editor
         List<string> IDs_list = new();
         List<string> entries_list = new();
 
+        List<string> IDs_list_extra = new();
+        List<string> entries_list_extra = new();
+
         void ReloadEntries(){
             if (current_view == view_mode.Engineer 
             ||  current_view == view_mode.Specialists
             ||  current_view == view_mode.Blueprints
             ||  current_view == view_mode.Drops){
-                populate_from(entity_names);
+                populate_from(entity_names, true);
                 entry_extra.Visibility = Visibility.Visible;
+                type_filter.Visibility = Visibility.Visible;
             }
             else if (current_view == view_mode.Relics){
-                populate_from(relic_names);
+                populate_from(relic_names, false);
                 entry_extra.Visibility = Visibility.Collapsed;
+                type_filter.Visibility = Visibility.Collapsed;
             }
             else if (current_view == view_mode.Upgrades){
-                populate_from(upgrade_names);
+                populate_from(upgrade_names, false);
+                populate_from_extra_panel(entity_names);
                 entry_extra.Visibility = Visibility.Collapsed;
+                type_filter.Visibility = Visibility.Collapsed;
             }
             else { // just clear it
                 IDs_list = new();
@@ -290,23 +301,117 @@ namespace RC_save_editor
                 entries_listview.ItemsSource = entries_list;
                 entries_listview.SelectedIndex = -1;
                 entry_extra.Visibility = Visibility.Collapsed;
+                type_filter.Visibility = Visibility.Collapsed;
             }
             ListView_SelectionChanged(null, null); // doesn't really matter if this gets called twice, just gotta make sure it gets called at least once
         }
-        void populate_from(Dictionary<string, string> dict){
+        void populate_from(Dictionary<string, string> dict, bool role_filter){
             IDs_list = new();
             entries_list = new();
+            UnitRole filter_role = role_filter? ComputeRoleFilters() : UnitRole.None;
             foreach (var entry in dict){
-                if (string.IsNullOrWhiteSpace(search_filter.Text) || entry.Value.Contains(search_filter.Text)){
+                if ((string.IsNullOrWhiteSpace(search_filter.Text) || entry.Value.Contains(search_filter.Text))
+                &&  (!role_filter || (filter_role & entity_roles[entry.Key]) == filter_role)){
                     IDs_list.Add(entry.Key);
                     entries_list.Add(entry.Value);
                 }
             }
             entries_listview.ItemsSource = entries_list;
             if (entries_list.Count > 0)
-                entries_listview.SelectedIndex = 0;
-            else
-                entries_listview.SelectedIndex = -1;
+                 entries_listview.SelectedIndex = 0;
+            else entries_listview.SelectedIndex = -1;
+        }
+        void populate_from_extra_panel(Dictionary<string, string> dict){
+            IDs_list_extra = new();
+            entries_list_extra = new();
+            UnitRole filter_role = ComputeRoleFiltersExtraPanel();
+            foreach (var entry in dict){
+                if ((string.IsNullOrWhiteSpace(search_filter_extra.Text) || entry.Value.Contains(search_filter_extra.Text))
+                &&  (filter_role & entity_roles[entry.Key]) == filter_role){
+                    IDs_list_extra.Add(entry.Key);
+                    entries_list_extra.Add(entry.Value);
+                }
+            }
+            entries_listview_extra.ItemsSource = entries_list_extra;
+            if (entries_list.Count > 0)
+                 entries_listview_extra.SelectedIndex = 0;
+            else entries_listview_extra.SelectedIndex = -1;
+
+            // update header of the extra upgrade page panel
+            select_label_extra.Text = $"Select Entity ({entries_list_extra.Count}/{entity_names.Count})";
+        }
+
+        UnitRole ComputeRoleFilters() { 
+            UnitRole role_filter = UnitRole.None;
+            if (Spawn_box.IsChecked == true) role_filter |= UnitRole.Spawn;
+            if (Harvester_box.IsChecked == true) role_filter |= UnitRole.Harvester;
+            if (FrontalAttacker_box.IsChecked == true) role_filter |= UnitRole.FrontalAttacker;
+            if (MassDestruction_box.IsChecked == true) role_filter |= UnitRole.MassDestruction;
+            if (Fire_box.IsChecked == true) role_filter |= UnitRole.Fire;
+            if (Sniper_box.IsChecked == true) role_filter |= UnitRole.Sniper;
+            if (Supporter_box.IsChecked == true) role_filter |= UnitRole.Supporter;
+            if (Rock_box.IsChecked == true) role_filter |= UnitRole.Rock;
+            if (Robo_box.IsChecked == true) role_filter |= UnitRole.Robo;
+            if (Spawner_box.IsChecked == true) role_filter |= UnitRole.Spawner;
+            if (PCXCard_box.IsChecked == true) role_filter |= UnitRole.PCXCard;
+            if (Building_box.IsChecked == true) role_filter |= UnitRole.Building;
+            if (Factory_box.IsChecked == true) role_filter |= UnitRole.Factory;
+            if (Turret_box.IsChecked == true) role_filter |= UnitRole.Turret;
+            if (Refinery_box.IsChecked == true) role_filter |= UnitRole.Refinery;
+            if (Unit_box.IsChecked == true) role_filter |= UnitRole.Unit;
+            if (Heal_box.IsChecked == true) role_filter |= UnitRole.Heal;
+            if (Specialist_box.IsChecked == true) role_filter |= UnitRole.Specialist;
+            if (Skill_box.IsChecked == true) role_filter |= UnitRole.Skill;
+            if (Engineer_box.IsChecked == true) role_filter |= UnitRole.Engineer;
+            if (Bomb_box.IsChecked == true) role_filter |= UnitRole.Bomb;
+            if (Scout_box.IsChecked == true) role_filter |= UnitRole.Scout;
+            if (Chest_box.IsChecked == true) role_filter |= UnitRole.Chest;
+            if (Tank_box.IsChecked == true) role_filter |= UnitRole.Tank;
+            if (Vehicle_box.IsChecked == true) role_filter |= UnitRole.Vehicle;
+            if (Mech_box.IsChecked == true) role_filter |= UnitRole.Mech;
+            if (Tree_box.IsChecked == true) role_filter |= UnitRole.Tree;
+            if (Melee_box.IsChecked == true) role_filter |= UnitRole.Melee;
+            if (Research_box.IsChecked == true) role_filter |= UnitRole.Research;
+            if (Crystal_box.IsChecked == true) role_filter |= UnitRole.Crystal;
+            if (Builder_box.IsChecked == true) role_filter |= UnitRole.Builder;
+            if (Drop_box.IsChecked == true) role_filter |= UnitRole.Drop;
+            return role_filter;
+        }
+        UnitRole ComputeRoleFiltersExtraPanel() { 
+            UnitRole role_filter = UnitRole.None;
+            if (extra_Spawn_box.IsChecked == true) role_filter |= UnitRole.Spawn;
+            if (extra_Harvester_box.IsChecked == true) role_filter |= UnitRole.Harvester;
+            if (extra_FrontalAttacker_box.IsChecked == true) role_filter |= UnitRole.FrontalAttacker;
+            if (extra_MassDestruction_box.IsChecked == true) role_filter |= UnitRole.MassDestruction;
+            if (extra_Fire_box.IsChecked == true) role_filter |= UnitRole.Fire;
+            if (extra_Sniper_box.IsChecked == true) role_filter |= UnitRole.Sniper;
+            if (extra_Supporter_box.IsChecked == true) role_filter |= UnitRole.Supporter;
+            if (extra_Rock_box.IsChecked == true) role_filter |= UnitRole.Rock;
+            if (extra_Robo_box.IsChecked == true) role_filter |= UnitRole.Robo;
+            if (extra_Spawner_box.IsChecked == true) role_filter |= UnitRole.Spawner;
+            if (extra_PCXCard_box.IsChecked == true) role_filter |= UnitRole.PCXCard;
+            if (extra_Building_box.IsChecked == true) role_filter |= UnitRole.Building;
+            if (extra_Factory_box.IsChecked == true) role_filter |= UnitRole.Factory;
+            if (extra_Turret_box.IsChecked == true) role_filter |= UnitRole.Turret;
+            if (extra_Refinery_box.IsChecked == true) role_filter |= UnitRole.Refinery;
+            if (extra_Unit_box.IsChecked == true) role_filter |= UnitRole.Unit;
+            if (extra_Heal_box.IsChecked == true) role_filter |= UnitRole.Heal;
+            if (extra_Specialist_box.IsChecked == true) role_filter |= UnitRole.Specialist;
+            if (extra_Skill_box.IsChecked == true) role_filter |= UnitRole.Skill;
+            if (extra_Engineer_box.IsChecked == true) role_filter |= UnitRole.Engineer;
+            if (extra_Bomb_box.IsChecked == true) role_filter |= UnitRole.Bomb;
+            if (extra_Scout_box.IsChecked == true) role_filter |= UnitRole.Scout;
+            if (extra_Chest_box.IsChecked == true) role_filter |= UnitRole.Chest;
+            if (extra_Tank_box.IsChecked == true) role_filter |= UnitRole.Tank;
+            if (extra_Vehicle_box.IsChecked == true) role_filter |= UnitRole.Vehicle;
+            if (extra_Mech_box.IsChecked == true) role_filter |= UnitRole.Mech;
+            if (extra_Tree_box.IsChecked == true) role_filter |= UnitRole.Tree;
+            if (extra_Melee_box.IsChecked == true) role_filter |= UnitRole.Melee;
+            if (extra_Research_box.IsChecked == true) role_filter |= UnitRole.Research;
+            if (extra_Crystal_box.IsChecked == true) role_filter |= UnitRole.Crystal;
+            if (extra_Builder_box.IsChecked == true) role_filter |= UnitRole.Builder;
+            if (extra_Drop_box.IsChecked == true) role_filter |= UnitRole.Drop;
+            return role_filter;
         }
 
         void ReloadAssigned() {
@@ -368,7 +473,18 @@ namespace RC_save_editor
             else if (current_view == view_mode.Relics)
                 savegame.relics.Add(IDs_list[entries_listview.SelectedIndex]);
             else if (current_view == view_mode.Upgrades){
-                // do nothing for now!!!!
+                // we need to check if an entity is selected in the extra panel
+                if (entries_listview_extra.SelectedIndex < 0 || entries_listview_extra.SelectedIndex >= IDs_list_extra.Count)
+                    return;
+
+                var entity_id = IDs_list_extra[entries_listview_extra.SelectedIndex];
+                var upgrade_id = IDs_list[entries_listview.SelectedIndex];
+
+                // check if the target entity already exists in our savegame list, append to that one if so
+                if (savegame.upgrades.Any(x => x.Key == entity_id))
+                    savegame.upgrades.First(x => x.Key == entity_id).Value.Add(upgrade_id);
+                else // create a new entry to append the upgrade to
+                    savegame.upgrades.Add(new(entity_id, new List<string> { upgrade_id }));
             }
 
             ReloadAssigned();
@@ -398,6 +514,33 @@ namespace RC_save_editor
         void SwapView(view_mode new_view){
             if (new_view == current_view) return;
 
+            // reset visibilty of all buttons
+            engineer_page_button.IsEnabled = true;
+            specialists_page_button.IsEnabled = true;
+            blueprints_page_button.IsEnabled = true;
+            drops_page_button.IsEnabled = true;
+            relics_page_button.IsEnabled = true;
+            upgrades_page_button.IsEnabled = true;
+            metadata_page_button.IsEnabled = true;
+            
+            // disable button of page we just navigated to
+            if (new_view == view_mode.Engineer)
+                engineer_page_button.IsEnabled = false;
+            else if (new_view == view_mode.Specialists)
+                specialists_page_button.IsEnabled = false;
+            else if (new_view == view_mode.Blueprints)
+                blueprints_page_button.IsEnabled = false;
+            else if (new_view == view_mode.Drops)
+                drops_page_button.IsEnabled = false;
+            else if (new_view == view_mode.Relics)
+                relics_page_button.IsEnabled = false;
+            else if (new_view == view_mode.Upgrades)
+                upgrades_page_button.IsEnabled = false;
+            else if (new_view == view_mode.metadata)
+                metadata_page_button.IsEnabled = false;
+            
+
+            // now handle all the controls that need to be adjusted for page load
             if (new_view == view_mode.Engineer
             ||  new_view == view_mode.Specialists
             ||  new_view == view_mode.Blueprints
@@ -405,9 +548,14 @@ namespace RC_save_editor
             ||  new_view == view_mode.Relics
             ||  new_view == view_mode.Upgrades){
                 
+                extra_id_list.Visibility = Visibility.Collapsed; // hide the extra id list if we're not on upgrades
+
                 metadata_page.Visibility = Visibility.Collapsed;
                 id_list_page.Visibility = Visibility.Visible;
                 //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
+
+                if (new_view == view_mode.Upgrades)
+                    extra_id_list.Visibility = Visibility.Visible;
 
                 current_view = new_view;
                 ReloadEntries();

@@ -16,29 +16,29 @@
             
             
             <StackPanel Orientation="Horizontal" Margin="2,1,0,0">
-                <Button Content="Engineer"      Padding="4,0,4,0" Height="19" Click="NavigateToEngineer"/>
-                <Button Content="Specialists"   Padding="4,0,4,0" Height="19" Click="NavigateToSpecialists"/>
-                <Button Content="Blueprints"    Padding="4,0,4,0" Height="19" Click="NavigateToBlueprints"/>
-                <Button Content="Drops"         Padding="4,0,4,0" Height="19" Click="NavigateToDrops"/>
-                <Button Content="Relics"        Padding="4,0,4,0" Height="19" Click="NavigateToRelics"/>
-                <Button Content="Upgrades"      Padding="4,0,4,0" Height="19" Click="NavigateToUpgrades"/>
-                <Button Content="Metadata"      Padding="4,0,4,0" Height="19" Click="NavigateToMetadata"/>
+                <Button x:Name="engineer_page_button"    Content="Engineer"      Padding="4,0,4,0" Height="19" Click="NavigateToEngineer"/>
+                <Button x:Name="specialists_page_button" Content="Specialists"   Padding="4,0,4,0" Height="19" Click="NavigateToSpecialists"/>
+                <Button x:Name="blueprints_page_button"  Content="Blueprints"    Padding="4,0,4,0" Height="19" Click="NavigateToBlueprints"/>
+                <Button x:Name="drops_page_button"       Content="Drops"         Padding="4,0,4,0" Height="19" Click="NavigateToDrops"/>
+                <Button x:Name="relics_page_button"      Content="Relics"        Padding="4,0,4,0" Height="19" Click="NavigateToRelics"/>
+                <Button x:Name="upgrades_page_button"    Content="Upgrades"      Padding="4,0,4,0" Height="19" Click="NavigateToUpgrades"/>
+                <Button x:Name="metadata_page_button"    Content="Metadata"      Padding="4,0,4,0" Height="19" Click="NavigateToMetadata"/>
             </StackPanel>
 
             <Border Grid.Row="1" Background="#FFE4E4E4" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="1,1,0,1">
                 <Grid>
                     <!-- Metadata field page -->
                     <Grid x:Name="metadata_page" Visibility="Collapsed">
-                        <StackPanel x:Name="field_panel" Grid.Column="1" Margin="5,21,5,5" Orientation="Vertical">
+                        <StackPanel x:Name="field_panel" Grid.Column="1" Margin="5,5,5,5" Orientation="Vertical">
 
                         </StackPanel>
                     </Grid>
                     <!-- ID field assign page -->
                     <Grid x:Name="id_list_page">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition/>
-                            <ColumnDefinition/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="2*"/>
                         </Grid.ColumnDefinitions>
                         <GridSplitter Grid.Column="0" Width="3" Background="Transparent" HorizontalAlignment="Right"/>
                         <GridSplitter Grid.Column="1" Width="3" Background="Transparent" HorizontalAlignment="Right"/>
@@ -82,20 +82,103 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <TextBlock x:Name="select_label" Text="Select [FIELD]"  FontSize="16" Margin="2,0,0,0"/>
-                            <TextBox x:Name="search_filter" Grid.Row="1" Margin="2,2,2,2" Grid.ColumnSpan="2" TextChanged="SearchFilterUpdated"/>
+
+                            <Grid Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="search_filter" Margin="2,2,2,2" TextChanged="SearchFilterUpdated"/>
+                                <ComboBox x:Name="type_filter" Grid.Column="1" Margin="2" Width="20">
+                                    <CheckBox x:Name="Spawn_box" Content="Spawn" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Harvester_box" Content="Harvester" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="FrontalAttacker_box" Content="FrontalAttacker" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="MassDestruction_box" Content="MassDestruction" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Fire_box" Content="Fire" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Sniper_box" Content="Sniper" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Supporter_box" Content="Supporter" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Rock_box" Content="Rock" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Robo_box" Content="Robo" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Spawner_box" Content="Spawner" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="PCXCard_box" Content="PCXCard" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Building_box" Content="Building" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Factory_box" Content="Factory" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Turret_box" Content="Turret" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Refinery_box" Content="Refinery" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Unit_box" Content="Unit" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Heal_box" Content="Heal" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Specialist_box" Content="Specialist" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Skill_box" Content="Skill" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Engineer_box" Content="Engineer" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Bomb_box" Content="Bomb" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Scout_box" Content="Scout" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Chest_box" Content="Chest" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Tank_box" Content="Tank" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Vehicle_box" Content="Vehicle" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Mech_box" Content="Mech" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Tree_box" Content="Tree" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Melee_box" Content="Melee" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Research_box" Content="Research" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Crystal_box" Content="Crystal" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Builder_box" Content="Builder" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="Drop_box" Content="Drop" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                </ComboBox>
+                            </Grid>
                             <Border Grid.Row="2" Background="White" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="2,0,2,2" Grid.ColumnSpan="2">
                                 <ListView x:Name="entries_listview" SelectionChanged="ListView_SelectionChanged"/>
                             </Border>
                         </Grid>
                         
-                        <Grid Grid.Column="0" Visibility="Collapsed">
+                        <Grid x:Name="extra_id_list" Grid.Column="0" Visibility="Collapsed">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="20"/>
                                 <RowDefinition Height="24"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <TextBlock x:Name="select_label_extra" Text="Select [FIELD]"  FontSize="16" Margin="2,0,0,0"/>
-                            <TextBox x:Name="search_filter_extra" Grid.Row="1" Margin="2,2,2,2" Grid.ColumnSpan="2" TextChanged="SearchFilterUpdated"/>
+
+                            <Grid Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="search_filter_extra" Margin="2,2,2,2" TextChanged="SearchFilterUpdated"/>
+                                <ComboBox Grid.Column="1" Margin="2" Width="20">
+                                    <CheckBox x:Name="extra_Spawn_box" Content="Spawn" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Harvester_box" Content="Harvester" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_FrontalAttacker_box" Content="FrontalAttacker" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_MassDestruction_box" Content="MassDestruction" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Fire_box" Content="Fire" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Sniper_box" Content="Sniper" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Supporter_box" Content="Supporter" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Rock_box" Content="Rock" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Robo_box" Content="Robo" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Spawner_box" Content="Spawner" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_PCXCard_box" Content="PCXCard" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Building_box" Content="Building" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Factory_box" Content="Factory" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Turret_box" Content="Turret" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Refinery_box" Content="Refinery" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Unit_box" Content="Unit" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Heal_box" Content="Heal" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Specialist_box" Content="Specialist" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Skill_box" Content="Skill" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Engineer_box" Content="Engineer" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Bomb_box" Content="Bomb" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Scout_box" Content="Scout" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Chest_box" Content="Chest" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Tank_box" Content="Tank" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Vehicle_box" Content="Vehicle" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Mech_box" Content="Mech" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Tree_box" Content="Tree" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Melee_box" Content="Melee" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Research_box" Content="Research" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Crystal_box" Content="Crystal" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Builder_box" Content="Builder" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                    <CheckBox x:Name="extra_Drop_box" Content="Drop" Checked="FilterBoxChecked" Unchecked="FilterBoxChecked" />
+                                </ComboBox>
+                            </Grid>
+
                             <Border Grid.Row="2" Background="White" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="2,0,2,2" Grid.ColumnSpan="2">
                                 <ListView x:Name="entries_listview_extra"/>
                             </Border>
