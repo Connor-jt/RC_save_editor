@@ -418,21 +418,39 @@ namespace RC_save_editor
         List<string> entries_list_extra = new();
 
         void ReloadEntries(){
+            // toggle PCXcard filter visibility if NO_PCX is checked (for both regular panel + extra upgrade side panel)
+            if (NoPCX_box.IsChecked == true){
+                PCXCard_box.IsEnabled = false;
+                if (PCXCard_box.IsChecked == true) PCXCard_box.IsChecked = false;
+            } else PCXCard_box.IsEnabled = true;
+            if (extra_NoPCX_box.IsChecked == true){
+                extra_PCXCard_box.IsEnabled = false;
+                if (extra_PCXCard_box.IsChecked == true) extra_PCXCard_box.IsChecked = false;
+            } else extra_PCXCard_box.IsEnabled = true;
+
             if (current_view == view_mode.Engineer 
             ||  current_view == view_mode.Specialists
             ||  current_view == view_mode.Blueprints
             ||  current_view == view_mode.Drops){
-                populate_from(entity_names, true);
+                UnitRole forced_filter = UnitRole.None;
+                if (current_view == view_mode.Specialists)
+                    forced_filter = UnitRole.Building;
+                if (current_view == view_mode.Blueprints)
+                    forced_filter = UnitRole.Building;
+                if (current_view == view_mode.Drops)
+                    forced_filter = UnitRole.Drop;
+
+                populate_from(entity_names, true, forced_filter);
                 entry_extra.Visibility = Visibility.Visible;
                 type_filter.Visibility = Visibility.Visible;
             }
             else if (current_view == view_mode.Relics){
-                populate_from(relic_names, false);
+                populate_from(relic_names, false, UnitRole.None);
                 entry_extra.Visibility = Visibility.Collapsed;
                 type_filter.Visibility = Visibility.Collapsed;
             }
             else if (current_view == view_mode.Upgrades){
-                populate_from(upgrade_names, false);
+                populate_from(upgrade_names, false, UnitRole.None);
                 populate_from_extra_panel(entity_names);
                 entry_extra.Visibility = Visibility.Collapsed;
                 type_filter.Visibility = Visibility.Collapsed;
@@ -447,13 +465,13 @@ namespace RC_save_editor
             }
             ListView_SelectionChanged(null, null); // doesn't really matter if this gets called twice, just gotta make sure it gets called at least once
         }
-        void populate_from(Dictionary<string, string> dict, bool role_filter){
+        void populate_from(Dictionary<string, string> dict, bool role_filter, UnitRole required_filter){
             IDs_list = new();
             entries_list = new();
-            UnitRole filter_role = role_filter? ComputeRoleFilters() : UnitRole.None;
+            UnitRole filter_role = role_filter? ComputeRoleFilters() | required_filter : required_filter;
             foreach (var entry in dict){
                 if ((string.IsNullOrWhiteSpace(search_filter.Text) || entry.Value.Contains(search_filter.Text, StringComparison.OrdinalIgnoreCase))
-                &&  (!role_filter || (filter_role & entity_roles[entry.Key]) == filter_role)){
+                &&  (!role_filter || ((filter_role & entity_roles[entry.Key]) == filter_role) && (NoPCX_box.IsChecked != true || ((entity_roles[entry.Key] & UnitRole.PCXCard) == UnitRole.None)))){
                     IDs_list.Add(entry.Key);
                     entries_list.Add(entry.Value);
                 }
@@ -469,7 +487,7 @@ namespace RC_save_editor
             UnitRole filter_role = ComputeRoleFiltersExtraPanel();
             foreach (var entry in dict){
                 if ((string.IsNullOrWhiteSpace(search_filter_extra.Text) || entry.Value.Contains(search_filter_extra.Text, StringComparison.OrdinalIgnoreCase))
-                &&  (filter_role & entity_roles[entry.Key]) == filter_role){
+                &&  (filter_role & entity_roles[entry.Key]) == filter_role && (extra_NoPCX_box.IsChecked != true || ((entity_roles[entry.Key] & UnitRole.PCXCard) == UnitRole.None))){
                     IDs_list_extra.Add(entry.Key);
                     entries_list_extra.Add(entry.Value);
                 }
@@ -669,6 +687,18 @@ namespace RC_save_editor
             upgrades_page_button.IsEnabled = true;
             metadata_page_button.IsEnabled = true;
             
+            // reset vis of filter boxes
+            Drop_box.Visibility = Visibility.Visible;
+            Building_box.Visibility = Visibility.Visible;
+
+            // disable filter of any forced filter pages
+            if (new_view == view_mode.Specialists
+            ||  new_view == view_mode.Blueprints)
+                Building_box.Visibility = Visibility.Collapsed;
+            else if (new_view == view_mode.Drops)
+                Drop_box.Visibility = Visibility.Collapsed;
+
+
             // disable button of page we just navigated to
             if (new_view == view_mode.Engineer)
                 engineer_page_button.IsEnabled = false;

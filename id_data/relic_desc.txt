@@ -37,4 +37,4 @@ Infected enemies get *Burning:Burn* and take 10 damage per second.	zspcupgvampwa
 Infected enemies explode for 20 splash damage when they die.	zspcupgvampwalker2a	#VampireWalker#:
 Eggs get a 20% chance per second to infect one other close by enemy.	zspcupgvampwalker2b	#VampireWalker#:
 #SpiderSpawn# get +10 HP and +2 damage.	zspcupgvampwalker2c	#VampireWalker#:
-Infected enemies will spawn 5 additional #BombCreep# on death.	
+Infected enemies will spawn 5 additional #BombCreep# on death.
