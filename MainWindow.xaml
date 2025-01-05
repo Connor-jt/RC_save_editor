@@ -19,9 +19,16 @@
             <Menu Grid.Row="0">
                 <MenuItem Header="_File">
                     <MenuItem Header="_Load Packed" Click="Menu_LoadPacked"/>
-                    <MenuItem Header="_Load Json" Click="Menu_LoadJson"/>
                     <MenuItem Header="_Save Packed" Click="Menu_SavePacked"/>
+                    <Separator />
+                    <MenuItem Header="_Load Json" Click="Menu_LoadJson"/>
                     <MenuItem Header="_Save Json" Click="Menu_SaveJson"/>
+                    <Separator />
+                    <MenuItem Header="_File testing">
+                        <MenuItem Header="_dat to json" Click="Menu_ConvertDat"/>
+                        <MenuItem Header="_json to dat" Click="Menu_ConvertJson"/>
+                        <MenuItem Header="_test json validity" Click="Menu_TestJson"/>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_RC Profiles">
                     <MenuItem Header="_Load Profile">
@@ -54,7 +61,9 @@
                 <Grid>
                     <!-- Console feed page-->
                     <Grid x:Name="console_page" Visibility="Collapsed">
-                        <TextBlock x:Name="console_feed" TextWrapping="Wrap"  Margin="5,5,5,5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ScrollViewer Margin="5,5,5,5"  HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBox x:Name="console_feed" TextWrapping="Wrap"/>
+                        </ScrollViewer>
                     </Grid>
                     
                     <!-- Metadata field page -->

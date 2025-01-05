@@ -16,6 +16,9 @@ using Newtonsoft.Json;
 using System.Linq;
 using System.ComponentModel;
 using Microsoft.Win32;
+using System;
+using doody;
+
 
 namespace RC_save_editor
 {
@@ -29,7 +32,7 @@ namespace RC_save_editor
             InitializeComponent();
             try{
                 LoadAllIDs("C:\\Users\\Joe bingle\\Downloads\\RC modding\\exports\\data\\");
-                LoadEncrypted_Path("D:\\Programs\\Steam\\steamapps\\common\\Rogue Command\\Profiles\\Profile3\\savegame.dat");
+                //LoadEncrypted_Path("D:\\Programs\\Steam\\steamapps\\common\\Rogue Command\\Profiles\\Profile3\\savegame.dat");
             } catch (Exception ex){ NavigateToOutput(ex.ToString());}
         }
         
@@ -45,7 +48,7 @@ namespace RC_save_editor
             openFileDialog.DefaultExt = ".json";
             openFileDialog.Filter = "Exported RC savegame files (.json)|*.json";
             if (openFileDialog.ShowDialog() == true)
-                LoadEncrypted_Path(openFileDialog.FileName);
+                LoadJsonPath(openFileDialog.FileName);
         }
         private void Menu_SaveJson(object sender, RoutedEventArgs e){
             SaveFileDialog saveFileDialog = new SaveFileDialog();
@@ -63,9 +66,40 @@ namespace RC_save_editor
             if (saveFileDialog.ShowDialog() == true)
                 WriteSaveGameFile(saveFileDialog.FileName);
         }
+        private void Menu_ConvertDat(object sender, RoutedEventArgs e){
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.DefaultExt = ".dat";
+            openFileDialog.Filter = "RC savegame files (.dat)|*.dat";
+            if (openFileDialog.ShowDialog() == true){
+                try{
+		            File.WriteAllText(openFileDialog.FileName + ".json", EncrypterAES.DecryptStringFromBytes_Aes(File.ReadAllBytes(openFileDialog.FileName)));
+                } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
+            }
+        }
+        private void Menu_ConvertJson(object sender, RoutedEventArgs e){
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.DefaultExt = ".json";
+            openFileDialog.Filter = "Exported RC savegame files (.json)|*.json";
+            if (openFileDialog.ShowDialog() == true){
+                try{
+		            File.WriteAllBytes(openFileDialog.FileName + ".dat", EncrypterAES.EncryptStringToBytes_Aes(File.ReadAllText(openFileDialog.FileName)));
+                } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
+            }
+        }
+        private void Menu_TestJson(object sender, RoutedEventArgs e){
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.DefaultExt = ".json";
+            openFileDialog.Filter = "Exported RC savegame files (.json)|*.json";
+            if (openFileDialog.ShowDialog() == true){
+                try{
+                    FromJson.JsonValidityTest(File.ReadAllText(openFileDialog.FileName));
+                    throw new Exception("Validity check all good. File should be compatible with the game.");
+                } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
+            }
+        }
 
 
-	    void LoadEncrypted_Path(string path)
+        void LoadEncrypted_Path(string path)
 	    => LoadJson(EncrypterAES.DecryptStringFromBytes_Aes(File.ReadAllBytes(path)));
         void LoadJsonPath(string path)
         => LoadJson(File.ReadAllText(path));
@@ -123,7 +157,7 @@ namespace RC_save_editor
                         case "researchBranches":
                             break;
                         case "stageMap":
-                            savegame.stage_map = item.Value.ToString(); // this should hopefully just yoink the inner json text
+                            savegame.stage_map = item.Value.ToString(Formatting.None); // this should hopefully just yoink the inner json text
                             break;
                     }
                 }
@@ -156,58 +190,58 @@ namespace RC_save_editor
 
                 // generic data fields
                 foreach (var item in savegame.datafields)
-                    json.Append($"\"{item.Key}\": {item.Value}, ");
+                    json.Append($"\"{item.Key}\":{item.Value},");
 
                 // engineer
-                json.Append($"\"engineer\": \"{savegame.engineer}\", ");
+                json.Append($"\"engineer\":\"{savegame.engineer}\",");
 
                 // specialists
-                json.Append("\"specialists\": [ ");
+                json.Append("\"specialists\":[");
                 for (int i = 0; i < savegame.specialists.Count; i++){
                     if (i > 0) json.Append(", ");
                     json.Append($"\"{savegame.specialists[i]}\"");
-                } json.Append(" ], ");
+                } json.Append("],");
             
                 // blueprints
-                json.Append("\"blueprints\": [ ");
+                json.Append("\"blueprints\":[");
                 for (int i = 0; i < savegame.blueprints.Count; i++){
-                    if (i > 0) json.Append(", ");
+                    if (i > 0) json.Append(",");
                     json.Append($"\"{savegame.blueprints[i]}\"");
-                } json.Append(" ], ");
+                } json.Append("],");
 
                 // relics
-                json.Append("\"relics\": [ ");
+                json.Append("\"relics\":[");
                 for (int i = 0; i < savegame.relics.Count; i++){
-                    if (i > 0) json.Append(", ");
+                    if (i > 0) json.Append(",");
                     json.Append($"\"{savegame.relics[i]}\"");
-                } json.Append(" ], ");
+                } json.Append("],");
 
                 // drops
-                json.Append("\"drops\": [ ");
+                json.Append("\"drops\":[");
                 for (int i = 0; i < savegame.drops.Count; i++){
-                    if (i > 0) json.Append(", ");
+                    if (i > 0) json.Append(",");
                     json.Append($"\"{savegame.drops[i]}\"");
-                } json.Append(" ], ");
+                } json.Append("],");
             
                 // upgrades
-                json.Append("\"cardUpgrades\": [ ");
+                json.Append("\"cardUpgrades\":[");
                 for (int i = 0; i < savegame.upgrades.Count; i++){
-                    if (i > 0) json.Append(", ");
+                    if (i > 0) json.Append(",");
                     var curr_upgrade = savegame.upgrades[i];
-                    json.Append($"[ \"{curr_upgrade.Key}\", [ ");
+                    json.Append($"[\"{curr_upgrade.Key}\",[");
                 
                     for (int j = 0; j < curr_upgrade.Value.Count; j++){
-                        if (j > 0) json.Append(", ");
+                        if (j > 0) json.Append(",");
                         json.Append($"\"{curr_upgrade.Value[j]}\"");
                     }
-                    json.Append(" ] ]");
-                } json.Append(" ], ");
+                    json.Append("]]");
+                } json.Append("],");
 
                 // unused research branches thing
-                json.Append("\"researchBranches\": [], ");
+                json.Append("\"researchBranches\":[],");
 
             
-                json.Append("\"stageMap\": ");
+                json.Append("\"stageMap\":");
                 json.Append(savegame.stage_map);
                 json.Append("}");
                 return json.ToString();
