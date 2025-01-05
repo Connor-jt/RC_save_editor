@@ -656,6 +656,10 @@ namespace RC_save_editor
         void SwapView(view_mode new_view){
             if (new_view == current_view) return;
 
+            // reset visibility of savegame exporting buttons
+            save_packed_button.Visibility = Visibility.Visible;
+            save_json_button.Visibility = Visibility.Visible;   
+
             // reset visibilty of all buttons
             engineer_page_button.IsEnabled = true;
             specialists_page_button.IsEnabled = true;
