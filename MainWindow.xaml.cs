@@ -18,6 +18,9 @@ using System.ComponentModel;
 using Microsoft.Win32;
 using System;
 using doody;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
+
 
 
 namespace RC_save_editor
@@ -32,6 +35,7 @@ namespace RC_save_editor
             InitializeComponent();
             try{
                 LoadAllIDs("id_data\\");
+                AutoFetchGamePath_If_FirstTime();
                 //LoadEncrypted_Path("D:\\Programs\\Steam\\steamapps\\common\\Rogue Command\\Profiles\\Profile3\\savegame.dat");
             } catch (Exception ex){ NavigateToOutput(ex.ToString());}
         }
@@ -780,5 +784,96 @@ namespace RC_save_editor
             console_feed.Text = output;
         }
 
+
+        // steam interaction stuff //
+        void GetGamePath(object sender, RoutedEventArgs e){
+            try{
+                // try two different registry paths to find the steam folder??
+                string? steam_folder = (string?)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath", null);
+                if (string.IsNullOrWhiteSpace(steam_folder))
+                    steam_folder = (string?)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Valve\Steam", "InstallPath", null);
+                if (string.IsNullOrWhiteSpace(steam_folder))
+                    throw new Exception("Steam path not found in registry!");
+
+
+                string library_folders_path = steam_folder + "\\steamapps\\libraryfolders.vdf";
+                // chat gpt gave me this regex, so no idea what it does
+                if (!File.Exists(library_folders_path))
+                    throw new Exception("libraryfolders.vdf missing from steam path!");
+
+            
+                var libraryFolders = new List<string>(); 
+                var fileContent = File.ReadAllText(library_folders_path); 
+
+                for (int index = 0;;) {
+                    index = fileContent.IndexOf("\"path\"", index);
+                    if (index == -1) break;
+
+                    // iterate over all white spaces to find start of path string
+                    index += 6;
+                    while (fileContent[index++] != '\"');
+
+                    // iterate over all characters and append to path var until we reach the delimiting quote character
+                    string path = "";
+                    while (fileContent[index] != '\"')
+                        path += fileContent[index++];
+
+                    libraryFolders.Add(path);
+                }
+
+                // search all the directories for the game folder: "Rogue Command"
+                string game_folder_path = "";
+                foreach (string library in libraryFolders){
+                    string game_path = library + "\\steamapps\\common\\Rogue Command";
+                    if (Directory.Exists(game_path)){
+                        game_folder_path = game_path;
+                        break;
+                }}
+                if (string.IsNullOrWhiteSpace(game_folder_path))
+                    throw new Exception($"Rogue command folder was not found in any of {libraryFolders.Count} steam libraries!");
+                VerifyGameFolder(game_folder_path);
+            } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
+        }
+
+        void SetGamePath(object sender, RoutedEventArgs e){
+            try{
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+                openFileDialog.Filter = "Rogue Command executable|roguecommand.exe";
+                openFileDialog.Title = "Select the Rogue Command executable";
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    VerifyGameFolder(openFileDialog.FileName);
+                }
+            }
+            catch (Exception ex) { NavigateToOutput(ex.ToString()); }
+        }
+        void VerifyGameFolder(string game_folder){
+            if (!Directory.Exists(game_folder + "\\Profiles"))
+                throw new Exception("folder does not contain profiles folder!");
+
+            if (!Directory.Exists(game_folder + "\\Profiles\\Profile1"))
+                throw new Exception("folder is missing profile1");
+            if (!Directory.Exists(game_folder + "\\Profiles\\Profile2"))
+                throw new Exception("folder is missing profile2");
+            if (!Directory.Exists(game_folder + "\\Profiles\\Profile3"))
+                throw new Exception("folder is missing profile3");
+
+            SaveGamePath(game_folder);
+        }
+
+        void SaveGamePath(string new_path){
+            try{
+                File.WriteAllText("game_path.txt", new_path);
+            } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
+        }
+        void AutoFetchGamePath_If_FirstTime(){
+            if (!File.Exists("game_path.txt"))
+                GetGamePath(null, null);
+
+            // if that failed, then just put the file in but make it blank, so that we never run this logic again
+            if (!File.Exists("game_path.txt"))
+                File.WriteAllText("game_path.txt", "");
+        }
     }
 }

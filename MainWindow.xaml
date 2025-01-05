@@ -43,6 +43,8 @@
                     </MenuItem>
                     <Separator />
                     <MenuItem Header="_Set game path"/>
+                    <MenuItem Header="_Try auto find game path" Click="GetGamePath"/>
+                    <MenuItem Header="_Open game path in explorer"/>
                 </MenuItem>
             </Menu>
             <Separator Grid.Row="0" Height="1" VerticalAlignment="Bottom"/>
