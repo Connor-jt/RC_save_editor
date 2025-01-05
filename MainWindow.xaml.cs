@@ -15,6 +15,7 @@ using static RC_save_editor.DataStuff;
 using Newtonsoft.Json;
 using System.Linq;
 using System.ComponentModel;
+using Microsoft.Win32;
 
 namespace RC_save_editor
 {
@@ -26,87 +27,193 @@ namespace RC_save_editor
         public MainWindow()
         {
             InitializeComponent();
-            LoadAllIDs("C:\\Users\\Joe bingle\\Downloads\\RC modding\\exports\\data\\");
-
-            LoadEncrypted_Path("D:\\Programs\\Steam\\steamapps\\common\\Rogue Command\\Profiles\\Profile3\\savegame.dat");
-
-            ListView_SelectionChanged(null, null); // clear our epic sample text
+            try{
+                LoadAllIDs("C:\\Users\\Joe bingle\\Downloads\\RC modding\\exports\\data\\");
+                LoadEncrypted_Path("D:\\Programs\\Steam\\steamapps\\common\\Rogue Command\\Profiles\\Profile3\\savegame.dat");
+            } catch (Exception ex){ NavigateToOutput(ex.ToString());}
+        }
+        
+        private void Menu_LoadPacked(object sender, RoutedEventArgs e){
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.DefaultExt = ".dat";
+            openFileDialog.Filter = "RC savegame files (.dat)|*.dat";
+            if (openFileDialog.ShowDialog() == true)
+                LoadEncrypted_Path(openFileDialog.FileName);
+        }
+        private void Menu_LoadJson(object sender, RoutedEventArgs e){
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.DefaultExt = ".json";
+            openFileDialog.Filter = "Exported RC savegame files (.json)|*.json";
+            if (openFileDialog.ShowDialog() == true)
+                LoadEncrypted_Path(openFileDialog.FileName);
+        }
+        private void Menu_SaveJson(object sender, RoutedEventArgs e){
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = "savegame";
+            saveFileDialog.DefaultExt = ".json";
+            saveFileDialog.Filter = "Exported RC savegame files (.json)|*.json";
+            if (saveFileDialog.ShowDialog() == true)
+                WriteJson(saveFileDialog.FileName);
+        }
+        private void Menu_SavePacked(object sender, RoutedEventArgs e){
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = "savegame";
+            saveFileDialog.DefaultExt = ".dat";
+            saveFileDialog.Filter = "RC savegame files (.dat)|*.dat";
+            if (saveFileDialog.ShowDialog() == true)
+                WriteSaveGameFile(saveFileDialog.FileName);
         }
 
-        void WriteSaveGameFile()
-	    {
-		    //byte[] bytes = EncrypterAES.EncryptStringToBytes_Aes();
-		    //File.WriteAllBytes("D:\\Programs\\Steam\\steamapps\\common\\Rogue Command\\Profiles\\Profile3\\savegame.dat", bytes);
-
-            
-	    }
 
 	    void LoadEncrypted_Path(string path)
 	    => LoadJson(EncrypterAES.DecryptStringFromBytes_Aes(File.ReadAllBytes(path)));
         void LoadJsonPath(string path)
         => LoadJson(File.ReadAllText(path));
-        
-        void LoadJson(string json_contents)
-        {
-            field_panel.Children.Clear();
-            savegame = new();
+        void LoadJson(string json_contents){
+            try{
+                field_panel.Children.Clear();
+                savegame = new();
 
-            dynamic? data = JsonConvert.DeserializeObject(json_contents);
-            if (data == null) throw new Exception("failed to deserialize!");
+                dynamic? data = JsonConvert.DeserializeObject(json_contents);
+                if (data == null) throw new Exception("failed to deserialize!");
 
-            foreach (var item in data){
-                switch (item.Name){
-                    // default data field cases
-                    case "secondsPlayedOverall":
-                        savegame.datafields[item.Name] = item.Value.Value.ToString();
-                        EditField float_editField = new EditField(item.Name, item.Value.Value.ToString(), this, true);
-                        field_panel.Children.Add(float_editField);
-                        break;
-                    default:
-                        savegame.datafields[item.Name] = item.Value.Value.ToString();
-                        // create UI interface??
-                        EditField editField = new EditField(item.Name, item.Value.Value.ToString(), this, false);
-                        field_panel.Children.Add(editField);
-                        break;
-                    // unique static fields
-                    case "engineer":
-                        savegame.engineer = item.Value.Value;
-                        break;
-                    case "specialists":
-                        foreach (var specialist in item.Value)
-                            savegame.specialists.Add(specialist.Value);
-                        break;
-                    case "blueprints":
-                        foreach (var blueprint in item.Value)
-                            savegame.blueprints.Add(blueprint.Value);
-                        break;
-                    case "relics":
-                        foreach (var relic in item.Value)
-                            savegame.relics.Add(relic.Value);
-                        break;
-                    case "drops":
-                        foreach (var drop in item.Value)
-                            savegame.drops.Add(drop.Value);
-                        break;
-                    case "cardUpgrades":
-                        foreach (var upgrade_unit in item.Value){
-                            KeyValuePair<string, List<string>> upgrade_entry = new(upgrade_unit[0].Value, new List<string>());
-                            foreach (var upgrade in upgrade_unit[1])
-                                upgrade_entry.Value.Add(upgrade.Value);
-                            savegame.upgrades.Add(upgrade_entry);
-                        }
-                        break;
-                    // unsupported cases
-                    case "researchBranches":
-                        break;
-                    case "stageMap":
-                        savegame.stage_map = item.Value.ToString(); // this should hopefully just yoink the inner json text
-                        break;
+                foreach (var item in data){
+                    switch (item.Name){
+                        // default data field cases
+                        case "secondsPlayedOverall":
+                            savegame.datafields[item.Name] = item.Value.Value.ToString();
+                            EditField float_editField = new EditField(item.Name, item.Value.Value.ToString(), this, true);
+                            field_panel.Children.Add(float_editField);
+                            break;
+                        default:
+                            savegame.datafields[item.Name] = item.Value.Value.ToString();
+                            // create UI interface??
+                            EditField editField = new EditField(item.Name, item.Value.Value.ToString(), this, false);
+                            field_panel.Children.Add(editField);
+                            break;
+                        // unique static fields
+                        case "engineer":
+                            savegame.engineer = item.Value.Value;
+                            break;
+                        case "specialists":
+                            foreach (var specialist in item.Value)
+                                savegame.specialists.Add(specialist.Value);
+                            break;
+                        case "blueprints":
+                            foreach (var blueprint in item.Value)
+                                savegame.blueprints.Add(blueprint.Value);
+                            break;
+                        case "relics":
+                            foreach (var relic in item.Value)
+                                savegame.relics.Add(relic.Value);
+                            break;
+                        case "drops":
+                            foreach (var drop in item.Value)
+                                savegame.drops.Add(drop.Value);
+                            break;
+                        case "cardUpgrades":
+                            foreach (var upgrade_unit in item.Value){
+                                KeyValuePair<string, List<string>> upgrade_entry = new(upgrade_unit[0].Value, new List<string>());
+                                foreach (var upgrade in upgrade_unit[1])
+                                    upgrade_entry.Value.Add(upgrade.Value);
+                                savegame.upgrades.Add(upgrade_entry);
+                            }
+                            break;
+                        // unsupported cases
+                        case "researchBranches":
+                            break;
+                        case "stageMap":
+                            savegame.stage_map = item.Value.ToString(); // this should hopefully just yoink the inner json text
+                            break;
+                    }
                 }
-            }
+                // then make everything refresh
+                NavigateToEngineer(null, null);
 
-
+            } catch (Exception ex){ NavigateToOutput(ex.ToString());}
         }
+        void WriteSaveGameFile(string output_path){
+            try{
+                string serialized_json = CompileJson();
+                if (string.IsNullOrWhiteSpace(serialized_json)) return;
+
+		        File.WriteAllBytes(output_path, EncrypterAES.EncryptStringToBytes_Aes(serialized_json));
+            } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
+	    }
+        void WriteJson(string output_path){
+            try{
+                string serialized_json = CompileJson();
+                if (string.IsNullOrWhiteSpace(serialized_json)) return;
+
+		        File.WriteAllText(output_path, serialized_json);
+            } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
+	    }
+        string CompileJson(){
+            try{
+                // serialize the json manually
+                StringBuilder json = new();
+                json.Append("{");
+
+                // generic data fields
+                foreach (var item in savegame.datafields)
+                    json.Append($"\"{item.Key}\": {item.Value}, ");
+
+                // engineer
+                json.Append($"\"engineer\": \"{savegame.engineer}\", ");
+
+                // specialists
+                json.Append("\"specialists\": [ ");
+                for (int i = 0; i < savegame.specialists.Count; i++){
+                    if (i > 0) json.Append(", ");
+                    json.Append($"\"{savegame.specialists[i]}\"");
+                } json.Append(" ], ");
+            
+                // blueprints
+                json.Append("\"blueprints\": [ ");
+                for (int i = 0; i < savegame.blueprints.Count; i++){
+                    if (i > 0) json.Append(", ");
+                    json.Append($"\"{savegame.blueprints[i]}\"");
+                } json.Append(" ], ");
+
+                // relics
+                json.Append("\"relics\": [ ");
+                for (int i = 0; i < savegame.relics.Count; i++){
+                    if (i > 0) json.Append(", ");
+                    json.Append($"\"{savegame.relics[i]}\"");
+                } json.Append(" ], ");
+
+                // drops
+                json.Append("\"drops\": [ ");
+                for (int i = 0; i < savegame.drops.Count; i++){
+                    if (i > 0) json.Append(", ");
+                    json.Append($"\"{savegame.drops[i]}\"");
+                } json.Append(" ], ");
+            
+                // upgrades
+                json.Append("\"cardUpgrades\": [ ");
+                for (int i = 0; i < savegame.upgrades.Count; i++){
+                    if (i > 0) json.Append(", ");
+                    var curr_upgrade = savegame.upgrades[i];
+                    json.Append($"[ \"{curr_upgrade.Key}\", [ ");
+                
+                    for (int j = 0; j < curr_upgrade.Value.Count; j++){
+                        if (j > 0) json.Append(", ");
+                        json.Append($"\"{curr_upgrade.Value[j]}\"");
+                    }
+                    json.Append(" ] ]");
+                } json.Append(" ], ");
+
+                // unused research branches thing
+                json.Append("\"researchBranches\": [], ");
+
+            
+                json.Append("\"stageMap\": ");
+                json.Append(savegame.stage_map);
+                json.Append("}");
+                return json.ToString();
+            } catch (Exception ex){ NavigateToOutput(ex.ToString()); return "";}
+        }
+
 
         SaveGameInstance savegame = new();
 
@@ -265,7 +372,8 @@ namespace RC_save_editor
             Upgrades,
 
             metadata,
-            stagemap
+            stagemap,
+            output
         }
         view_mode current_view = view_mode.None;
 
@@ -547,15 +655,15 @@ namespace RC_save_editor
             ||  new_view == view_mode.Drops
             ||  new_view == view_mode.Relics
             ||  new_view == view_mode.Upgrades){
-                
-                extra_id_list.Visibility = Visibility.Collapsed; // hide the extra id list if we're not on upgrades
-
+                console_page.Visibility = Visibility.Collapsed;
                 metadata_page.Visibility = Visibility.Collapsed;
                 id_list_page.Visibility = Visibility.Visible;
                 //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
 
+                // hide the extra id list if we're not on upgrades
                 if (new_view == view_mode.Upgrades)
-                    extra_id_list.Visibility = Visibility.Visible;
+                     extra_id_list.Visibility = Visibility.Visible;
+                else extra_id_list.Visibility = Visibility.Collapsed; 
 
                 current_view = new_view;
                 ReloadEntries();
@@ -564,8 +672,18 @@ namespace RC_save_editor
             }
 
             if (new_view == view_mode.metadata){
-                
+                console_page.Visibility = Visibility.Collapsed;
                 metadata_page.Visibility = Visibility.Visible;
+                id_list_page.Visibility = Visibility.Collapsed;
+                //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
+                
+                current_view = new_view;
+                return;
+            }
+
+            if (new_view == view_mode.output){
+                console_page.Visibility = Visibility.Visible;
+                metadata_page.Visibility = Visibility.Collapsed;
                 id_list_page.Visibility = Visibility.Collapsed;
                 //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
                 
@@ -580,6 +698,10 @@ namespace RC_save_editor
         private void NavigateToRelics(object sender, RoutedEventArgs e)      => SwapView(view_mode.Relics);
         private void NavigateToUpgrades(object sender, RoutedEventArgs e)    => SwapView(view_mode.Upgrades);
         private void NavigateToMetadata(object sender, RoutedEventArgs e)    => SwapView(view_mode.metadata);
+        private void NavigateToOutput(string output){
+            SwapView(view_mode.output);
+            console_feed.Text = output;
+        }
 
     }
 }

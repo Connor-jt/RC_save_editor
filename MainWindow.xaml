@@ -10,12 +10,37 @@
 
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="25"/>
                 <RowDefinition Height="19"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            
-            
-            <StackPanel Orientation="Horizontal" Margin="2,1,0,0">
+
+
+            <Menu Grid.Row="0">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_Load Packed" Click="Menu_LoadPacked"/>
+                    <MenuItem Header="_Load Json" Click="Menu_LoadJson"/>
+                    <MenuItem Header="_Save Packed" Click="Menu_SavePacked"/>
+                    <MenuItem Header="_Save Json" Click="Menu_SaveJson"/>
+                </MenuItem>
+                <MenuItem Header="_RC Profiles">
+                    <MenuItem Header="_Load Profile">
+                        <MenuItem Header="_Profile 1"/>
+                        <MenuItem Header="_Profile 2"/>
+                        <MenuItem Header="_Profile 3"/>
+                    </MenuItem>
+                    <MenuItem Header="_Save Profile">
+                        <MenuItem Header="_Profile 1"/>
+                        <MenuItem Header="_Profile 2"/>
+                        <MenuItem Header="_Profile 3"/>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="_Set game path"/>
+                </MenuItem>
+            </Menu>
+            <Separator Grid.Row="0" Height="1" VerticalAlignment="Bottom"/>
+
+            <StackPanel Orientation="Horizontal"  Grid.Row="1" Margin="2,1,0,0">
                 <Button x:Name="engineer_page_button"    Content="Engineer"      Padding="4,0,4,0" Height="19" Click="NavigateToEngineer"/>
                 <Button x:Name="specialists_page_button" Content="Specialists"   Padding="4,0,4,0" Height="19" Click="NavigateToSpecialists"/>
                 <Button x:Name="blueprints_page_button"  Content="Blueprints"    Padding="4,0,4,0" Height="19" Click="NavigateToBlueprints"/>
@@ -25,8 +50,13 @@
                 <Button x:Name="metadata_page_button"    Content="Metadata"      Padding="4,0,4,0" Height="19" Click="NavigateToMetadata"/>
             </StackPanel>
 
-            <Border Grid.Row="1" Background="#FFE4E4E4" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="1,1,0,1">
+            <Border Grid.Row="2" Background="#FFE4E4E4" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="1,1,0,1">
                 <Grid>
+                    <!-- Console feed page-->
+                    <Grid x:Name="console_page" Visibility="Collapsed">
+                        <TextBlock x:Name="console_feed" TextWrapping="Wrap"  Margin="5,5,5,5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    
                     <!-- Metadata field page -->
                     <Grid x:Name="metadata_page" Visibility="Collapsed">
                         <StackPanel x:Name="field_panel" Grid.Column="1" Margin="5,5,5,5" Orientation="Vertical">
@@ -34,7 +64,7 @@
                         </StackPanel>
                     </Grid>
                     <!-- ID field assign page -->
-                    <Grid x:Name="id_list_page">
+                    <Grid x:Name="id_list_page" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="2*"/>
