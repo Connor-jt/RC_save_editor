@@ -9,10 +9,12 @@
              Height="20">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="300"/>
         </Grid.ColumnDefinitions>
         <TextBlock x:Name="context_box" Text="Sample text" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-        <TextBox x:Name="value_box" Grid.Column="1" VerticalAlignment="Center" TextInput="value_box_TextInput" BorderBrush="#00000000"/>
+        <Border x:Name="value_box_validator" Grid.Column="1" VerticalAlignment="Center" BorderBrush="Transparent" BorderThickness="1">
+            <TextBox x:Name="value_box" TextChanged="value_box_TextChanged"   />
+        </Border>
     </Grid>
 </UserControl>

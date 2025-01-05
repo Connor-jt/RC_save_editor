@@ -73,14 +73,14 @@
                     
                     <!-- Metadata field page -->
                     <Grid x:Name="metadata_page" Visibility="Collapsed">
-                        <StackPanel x:Name="field_panel" Grid.Column="1" Margin="5,5,5,5" Orientation="Vertical">
+                        <StackPanel x:Name="field_panel" Grid.Column="1" Margin="13,5,5,5" Orientation="Vertical">
 
                         </StackPanel>
                     </Grid>
                     <!-- ID field assign page -->
                     <Grid x:Name="id_list_page" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
+                            <ColumnDefinition Width="0"/>
                             <ColumnDefinition Width="2*"/>
                             <ColumnDefinition Width="2*"/>
                         </Grid.ColumnDefinitions>

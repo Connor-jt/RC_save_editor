@@ -36,19 +36,19 @@ namespace RC_save_editor
             if (current_value != null)
                 value_box.Text = current_value;
         }
-
-        private void value_box_TextInput(object sender, TextCompositionEventArgs e){
+        
+        private void value_box_TextChanged(object sender, TextChangedEventArgs e) {
             if (callback == null || context == null) { throw new Exception("bad edit field box??"); }
 
             if (value_box.Text == "" 
             || (!isfloat && !int.TryParse(value_box.Text, out _)) 
             || ( isfloat && !float.TryParse(value_box.Text, out _))){
-                value_box.BorderBrush = Brushes.Red;
+                value_box_validator.BorderBrush = Brushes.Red;
                 return;
             }
 
 
-            value_box.BorderBrush = Brushes.Transparent;
+            value_box_validator.BorderBrush = Brushes.Transparent;
             callback.field_edited(context, value_box.Text);
         }
     }

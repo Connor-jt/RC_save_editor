@@ -671,6 +671,7 @@ namespace RC_save_editor
             ReloadAssigned();
         }
 
+        GridLength upgrade_panel_stored_size = new GridLength(1, GridUnitType.Star);
         void SwapView(view_mode new_view){
             if (new_view == current_view) return;
 
@@ -698,6 +699,7 @@ namespace RC_save_editor
             else if (new_view == view_mode.Drops)
                 Drop_box.Visibility = Visibility.Collapsed;
 
+            
 
             // disable button of page we just navigated to
             if (new_view == view_mode.Engineer)
@@ -729,9 +731,16 @@ namespace RC_save_editor
                 //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
 
                 // hide the extra id list if we're not on upgrades
-                if (new_view == view_mode.Upgrades)
-                     extra_id_list.Visibility = Visibility.Visible;
-                else extra_id_list.Visibility = Visibility.Collapsed; 
+                
+                if (new_view == view_mode.Upgrades){
+                    id_list_page.ColumnDefinitions[0].Width = upgrade_panel_stored_size;
+                    extra_id_list.Visibility = Visibility.Visible;
+
+                }else if (current_view == view_mode.Upgrades) {
+                    upgrade_panel_stored_size = id_list_page.ColumnDefinitions[0].Width;
+                    id_list_page.ColumnDefinitions[0].Width = new GridLength(0);
+                    extra_id_list.Visibility = Visibility.Collapsed; 
+                }
 
                 current_view = new_view;
                 ReloadEntries();
