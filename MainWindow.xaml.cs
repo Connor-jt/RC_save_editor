@@ -31,7 +31,7 @@ namespace RC_save_editor
         {
             InitializeComponent();
             try{
-                LoadAllIDs("C:\\Users\\Joe bingle\\Downloads\\RC modding\\exports\\data\\");
+                LoadAllIDs("id_data\\");
                 //LoadEncrypted_Path("D:\\Programs\\Steam\\steamapps\\common\\Rogue Command\\Profiles\\Profile3\\savegame.dat");
             } catch (Exception ex){ NavigateToOutput(ex.ToString());}
         }
@@ -452,7 +452,7 @@ namespace RC_save_editor
             entries_list = new();
             UnitRole filter_role = role_filter? ComputeRoleFilters() : UnitRole.None;
             foreach (var entry in dict){
-                if ((string.IsNullOrWhiteSpace(search_filter.Text) || entry.Value.Contains(search_filter.Text))
+                if ((string.IsNullOrWhiteSpace(search_filter.Text) || entry.Value.Contains(search_filter.Text, StringComparison.OrdinalIgnoreCase))
                 &&  (!role_filter || (filter_role & entity_roles[entry.Key]) == filter_role)){
                     IDs_list.Add(entry.Key);
                     entries_list.Add(entry.Value);
@@ -468,7 +468,7 @@ namespace RC_save_editor
             entries_list_extra = new();
             UnitRole filter_role = ComputeRoleFiltersExtraPanel();
             foreach (var entry in dict){
-                if ((string.IsNullOrWhiteSpace(search_filter_extra.Text) || entry.Value.Contains(search_filter_extra.Text))
+                if ((string.IsNullOrWhiteSpace(search_filter_extra.Text) || entry.Value.Contains(search_filter_extra.Text, StringComparison.OrdinalIgnoreCase))
                 &&  (filter_role & entity_roles[entry.Key]) == filter_role){
                     IDs_list_extra.Add(entry.Key);
                     entries_list_extra.Add(entry.Value);
