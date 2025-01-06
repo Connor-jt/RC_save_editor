@@ -1159,10 +1159,14 @@ namespace RC_save_editor
             if (!string.IsNullOrWhiteSpace(game_folder))
                 System.Diagnostics.Process.Start("explorer.exe", game_folder);
         }
-        void LoadProfile1(object sender, RoutedEventArgs e) => LoadEncrypted_Path(game_folder + "\\Profiles\\Profile1\\savegame.dat");
-        void LoadProfile2(object sender, RoutedEventArgs e) => LoadEncrypted_Path(game_folder + "\\Profiles\\Profile2\\savegame.dat");
-        void LoadProfile3(object sender, RoutedEventArgs e) => LoadEncrypted_Path(game_folder + "\\Profiles\\Profile3\\savegame.dat");
-        
+        void LoadProfile1(object sender, RoutedEventArgs e) => TryLoadProfile(game_folder + "\\Profiles\\Profile1\\savegame.dat");
+        void LoadProfile2(object sender, RoutedEventArgs e) => TryLoadProfile(game_folder + "\\Profiles\\Profile2\\savegame.dat");
+        void LoadProfile3(object sender, RoutedEventArgs e) => TryLoadProfile(game_folder + "\\Profiles\\Profile3\\savegame.dat");
+        void TryLoadProfile(string path){
+            try{LoadEncrypted_Path(path);
+            } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
+        }
+
         void SaveProfile1(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile1\\savegame.dat");
         void SaveProfile2(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile2\\savegame.dat");
         void SaveProfile3(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile3\\savegame.dat");
