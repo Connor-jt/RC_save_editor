@@ -31,20 +31,20 @@
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_RC Profiles">
-                    <MenuItem Header="_Load Profile" IsEnabled="False">
-                        <MenuItem Header="_Profile 1"/>
-                        <MenuItem Header="_Profile 2"/>
-                        <MenuItem Header="_Profile 3"/>
+                    <MenuItem x:Name="profile_load"  Header="_Load Profile" IsEnabled="False">
+                        <MenuItem Header="_Profile 1" Click="LoadProfile1" />
+                        <MenuItem Header="_Profile 2" Click="LoadProfile2"/>
+                        <MenuItem Header="_Profile 3" Click="LoadProfile3"/>
                     </MenuItem>
-                    <MenuItem Header="_Save Profile" IsEnabled="False">
-                        <MenuItem Header="_Profile 1"/>
-                        <MenuItem Header="_Profile 2"/>
-                        <MenuItem Header="_Profile 3"/>
+                    <MenuItem x:Name="profile_save"  Header="_Save Profile" IsEnabled="False">
+                        <MenuItem Header="_Profile 1" Click="SaveProfile1"/>
+                        <MenuItem Header="_Profile 2" Click="SaveProfile2"/>
+                        <MenuItem Header="_Profile 3" Click="SaveProfile3"/>
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="_Set game path"/>
-                    <MenuItem Header="_Try auto find game path" Click="GetGamePath"/>
-                    <MenuItem Header="_Open game path in explorer"/>
+                    <MenuItem Header="_Set game folder" Click="SetGamePath"/>
+                    <MenuItem Header="_Auto set game folder" Click="GetGamePath"/>
+                    <MenuItem Header="_Open game folder" Click="BrowseGamePath" x:Name="profiles_browse" IsEnabled="False"/>
                 </MenuItem>
             </Menu>
             <Separator Grid.Row="0" Height="1" VerticalAlignment="Bottom"/>

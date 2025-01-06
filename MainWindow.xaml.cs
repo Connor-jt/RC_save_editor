@@ -679,9 +679,20 @@ namespace RC_save_editor
         void SwapView(view_mode new_view){
             if (new_view == current_view) return;
 
+            // process this at the top, so if we run into an error without anything open, then we skip accidently openning up all our UI
+            if (new_view == view_mode.output){
+                console_page.Visibility = Visibility.Visible;
+                metadata_page.Visibility = Visibility.Collapsed;
+                id_list_page.Visibility = Visibility.Collapsed;
+                //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
+                
+                if (current_view == view_mode.None)
+                    return;
+            }
+
             // reset visibility of savegame exporting buttons
-            save_packed_button.Visibility = Visibility.Visible;
-            save_json_button.Visibility = Visibility.Visible;   
+            save_packed_button.IsEnabled = true;
+            save_json_button.IsEnabled = true;   
 
             // reset visibilty of all buttons
             engineer_page_button.IsEnabled = true;
@@ -703,7 +714,10 @@ namespace RC_save_editor
             else if (new_view == view_mode.Drops)
                 Drop_box.Visibility = Visibility.Collapsed;
 
-            
+            // enable savegame direct profile interfacing buttons
+            if (!string.IsNullOrWhiteSpace(game_folder))
+                profile_save.IsEnabled = true;
+
 
             // disable button of page we just navigated to
             if (new_view == view_mode.Engineer)
@@ -761,13 +775,7 @@ namespace RC_save_editor
                 current_view = new_view;
                 return;
             }
-
             if (new_view == view_mode.output){
-                console_page.Visibility = Visibility.Visible;
-                metadata_page.Visibility = Visibility.Collapsed;
-                id_list_page.Visibility = Visibility.Collapsed;
-                //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
-                
                 current_view = new_view;
                 return;
             }
@@ -786,6 +794,7 @@ namespace RC_save_editor
 
 
         // steam interaction stuff //
+        string? game_folder = null;
         void GetGamePath(object sender, RoutedEventArgs e){
             try{
                 // try two different registry paths to find the steam folder??
@@ -837,40 +846,66 @@ namespace RC_save_editor
 
         void SetGamePath(object sender, RoutedEventArgs e){
             try{
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
-                openFileDialog.Filter = "Rogue Command executable|roguecommand.exe";
-                openFileDialog.Title = "Select the Rogue Command executable";
-                if (openFileDialog.ShowDialog() == true)
-                {
-                    VerifyGameFolder(openFileDialog.FileName);
-                }
-            }
-            catch (Exception ex) { NavigateToOutput(ex.ToString()); }
+                var folderDialog = new OpenFolderDialog();
+                folderDialog.Title = "Select \"Rogue Command\" folder";
+                if (folderDialog.ShowDialog() == true)
+                    VerifyGameFolder(folderDialog.FolderName);
+            } catch (Exception ex) { NavigateToOutput(ex.ToString()); }
         }
-        void VerifyGameFolder(string game_folder){
-            if (!Directory.Exists(game_folder + "\\Profiles"))
+        // folder dependent buttons
+        void BrowseGamePath(object sender, RoutedEventArgs e){
+            if (!string.IsNullOrWhiteSpace(game_folder))
+                System.Diagnostics.Process.Start("explorer.exe", game_folder);
+        }
+        void LoadProfile1(object sender, RoutedEventArgs e) => LoadEncrypted_Path(game_folder + "\\Profiles\\Profile1\\savegame.dat");
+        void LoadProfile2(object sender, RoutedEventArgs e) => LoadEncrypted_Path(game_folder + "\\Profiles\\Profile2\\savegame.dat");
+        void LoadProfile3(object sender, RoutedEventArgs e) => LoadEncrypted_Path(game_folder + "\\Profiles\\Profile3\\savegame.dat");
+        
+        void SaveProfile1(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile1\\savegame.dat");
+        void SaveProfile2(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile2\\savegame.dat");
+        void SaveProfile3(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile3\\savegame.dat");
+        
+
+
+        void VerifyGameFolder(string folder){
+            if (!Directory.Exists(folder + "\\Profiles"))
                 throw new Exception("folder does not contain profiles folder!");
 
-            if (!Directory.Exists(game_folder + "\\Profiles\\Profile1"))
+            if (!Directory.Exists(folder + "\\Profiles\\Profile1"))
                 throw new Exception("folder is missing profile1");
-            if (!Directory.Exists(game_folder + "\\Profiles\\Profile2"))
+            if (!Directory.Exists(folder + "\\Profiles\\Profile2"))
                 throw new Exception("folder is missing profile2");
-            if (!Directory.Exists(game_folder + "\\Profiles\\Profile3"))
+            if (!Directory.Exists(folder + "\\Profiles\\Profile3"))
                 throw new Exception("folder is missing profile3");
 
-            SaveGamePath(game_folder);
+            SaveGamePath(folder);
         }
 
         void SaveGamePath(string new_path){
             try{
                 File.WriteAllText("game_path.txt", new_path);
+                LoadedGamePath(new_path);
             } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
         }
+        void LoadedGamePath(string path){
+            game_folder = path;
+            profile_load.IsEnabled = true;
+            profiles_browse.IsEnabled = true;
+            // and also enable the save button if we have a savegame loaded
+            if (current_view != view_mode.None)
+                profile_save.IsEnabled = true;
+        }
         void AutoFetchGamePath_If_FirstTime(){
-            if (!File.Exists("game_path.txt"))
-                GetGamePath(null, null);
+            // if our game path file exists, then just check the file to see if we stored the game path
+            if (File.Exists("game_path.txt")){
+                string possible_game_path = File.ReadAllText("game_path.txt");
+                if (!string.IsNullOrWhiteSpace(possible_game_path) && Directory.Exists(possible_game_path))
+                    LoadedGamePath(possible_game_path);
+                return;
+            }
 
+            // else we need to run our first time search for the game
+            GetGamePath(null, null);
             // if that failed, then just put the file in but make it blank, so that we never run this logic again
             if (!File.Exists("game_path.txt"))
                 File.WriteAllText("game_path.txt", "");
