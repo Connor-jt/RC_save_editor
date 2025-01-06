@@ -57,7 +57,7 @@
                 <Button x:Name="relics_page_button"      Content="Relics"      IsEnabled="False"  Padding="4,0,4,0" Height="19" Click="NavigateToRelics"/>
                 <Button x:Name="upgrades_page_button"    Content="Upgrades"    IsEnabled="False"  Padding="4,0,4,0" Height="19" Click="NavigateToUpgrades"/>
                 <Button x:Name="metadata_page_button"    Content="Metadata"    IsEnabled="False"  Padding="4,0,4,0" Height="19" Click="NavigateToMetadata"/>
-                <Button x:Name="stagemap_page_button"    Content="Stagemap"    IsEnabled="False"  Padding="4,0,4,0" Height="19" Click="NavigateToMetadata"/>
+                <Button x:Name="stagemap_page_button"    Content="Stagemap"    IsEnabled="False"  Padding="4,0,4,0" Height="19" Click="NavigateToStagemap"/>
             </StackPanel>
 
             <Border Grid.Row="2" Background="#FFE4E4E4" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="1,1,0,1">

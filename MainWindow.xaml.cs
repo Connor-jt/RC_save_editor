@@ -375,8 +375,11 @@ namespace RC_save_editor
         Dictionary<string, string> upgrade_desc = new();
 
         List<string> EnemyDeck_names = new();
-        List<string> Landscape_names = new();
         List<string> Worlds_names = new();
+        List<string> Landscape_names = new();
+        Dictionary<string, int> EnemyDeck_to_index = new();
+        Dictionary<string, int> Worlds_to_index = new();
+        Dictionary<string, int> Landscape_to_index = new();
 
         void LoadAllIDs(string data_folder){
 
@@ -440,12 +443,18 @@ namespace RC_save_editor
                     upgrade_desc[value] = upgrade_desc_txt[i + 1];
 
             // load stage map definitions
-            foreach (string id in File.ReadAllText(data_folder + "enemy_decks.txt").Split("\t"))
+            foreach (string id in File.ReadAllText(data_folder + "enemy_decks.txt").Split("\t")){
+                EnemyDeck_to_index.Add(id, EnemyDeck_names.Count);
                 EnemyDeck_names.Add(id);
-            foreach (string id in File.ReadAllText(data_folder + "worlds.txt").Split("\t"))
+            }
+            foreach (string id in File.ReadAllText(data_folder + "worlds.txt").Split("\t")){
+                Worlds_to_index.Add(id, Worlds_names.Count);
                 Worlds_names.Add(id);
-            foreach (string id in File.ReadAllText(data_folder + "landscapes.txt").Split("\t"))
+            }
+            foreach (string id in File.ReadAllText(data_folder + "landscapes.txt").Split("\t")){
+                Landscape_to_index.Add(id, Landscape_names.Count);
                 Landscape_names.Add(id);
+            }
             
             bossAiPrefabName.ItemsSource = EnemyDeck_names;
             bossWorldPrefabName.ItemsSource = Worlds_names;
@@ -805,9 +814,54 @@ namespace RC_save_editor
         }
         #endregion
 
-
+        #region stagemap interactions
         bool is_loading_stage_infos = false;
         SaveGameInstance.StageMap? current_stagemap = null;
+        void ReloadStagemaps(){
+            if (savegame.stages.Count <= 0){
+                savegame.stages.Add(new StageMap());
+                NavigateToOutput("your savegame had ZERO stages, i've created a new one and inserted it, but bewarned the values may be misconfigured!");
+                return;
+            }
+
+            is_loading_stage_infos = true;
+            if (current_stagemap == null)
+                current_stagemap = savegame.stages[0];
+
+            chosenField.Text = current_stagemap.chosenField.ToString();
+            levelCount.Text = current_stagemap.levelCount.ToString();
+            maxWidth.Text = current_stagemap.maxWidth.ToString();
+            coinReward.Text = current_stagemap.coinReward.ToString();
+            startCrystalReward.Text = current_stagemap.startCrystalReward.ToString();
+            researchPointsReward.Text = current_stagemap.researchPointsReward.ToString();
+            currentLevel.Text = current_stagemap.currentLevel.ToString();
+            currentField.Text = current_stagemap.currentField.ToString();
+            isCurrentLevelFinished.IsChecked = current_stagemap.isCurrentLevelFinished;
+
+            cardRewardParameters_rarity.Text = current_stagemap.cardRewardParameters.rarity.ToString();
+            cardRewardParameters_rareProbability.Text = current_stagemap.cardRewardParameters.rareProbability.ToString();
+            cardRewardParameters_ultraRareProbability.Text = current_stagemap.cardRewardParameters.ultraRareProbability.ToString();
+            upgradeRewardParameters_rarity.Text = current_stagemap.upgradeRewardParameters.rarity.ToString();
+            upgradeRewardParameters_rareProbability.Text = current_stagemap.upgradeRewardParameters.rareProbability.ToString();
+            upgradeRewardParameters_ultraRareProbability.Text = current_stagemap.upgradeRewardParameters.ultraRareProbability.ToString();
+            relicRewardParameters_rarity.Text = current_stagemap.relicRewardParameters.rarity.ToString();
+            relicRewardParameters_rareProbability.Text = current_stagemap.relicRewardParameters.rareProbability.ToString();
+            relicRewardParameters_ultraRareProbability.Text = current_stagemap.relicRewardParameters.ultraRareProbability.ToString();
+            researchRewardParameters_rarity.Text = current_stagemap.researchRewardParameters.rarity.ToString();
+            researchRewardParameters_rareProbability.Text = current_stagemap.researchRewardParameters.rareProbability.ToString();
+            researchRewardParameters_ultraRareProbability.Text = current_stagemap.researchRewardParameters.ultraRareProbability.ToString();
+
+            // we have to do something a little special here to convert the strings to selected indexes
+            // so we setup an index lookup dictionary
+            try {
+                bossAiPrefabName.SelectedIndex = EnemyDeck_to_index[current_stagemap.bossAiPrefabName];
+                bossWorldPrefabName.SelectedIndex = Worlds_to_index[current_stagemap.bossWorldPrefabName];
+                bossMapScriptableObjectName.SelectedIndex = Landscape_to_index[current_stagemap.bossMapScriptableObjectName];
+            } catch (Exception ex){ NavigateToOutput(ex.ToString()); is_loading_stage_infos = false; return;}
+
+            is_loading_stage_infos = false;
+        }
+
         #region static field interactions
         private void chosenField_TextChanged(object sender, TextChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
@@ -903,6 +957,7 @@ namespace RC_save_editor
             if (field.SelectedIndex >= 0 && field.SelectedIndex < item_source.Count)
                 write_to_value = item_source[field.SelectedIndex];
         }
+        #endregion
 
         #region UI pages navigation
         GridLength upgrade_panel_stored_size = new GridLength(1, GridUnitType.Star);
@@ -914,7 +969,7 @@ namespace RC_save_editor
                 console_page.Visibility = Visibility.Visible;
                 metadata_page.Visibility = Visibility.Collapsed;
                 id_list_page.Visibility = Visibility.Collapsed;
-                //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
+                stagemap_list_page.Visibility = Visibility.Collapsed;
                 
                 if (current_view == view_mode.None)
                     return;
@@ -932,6 +987,7 @@ namespace RC_save_editor
             relics_page_button.IsEnabled = true;
             upgrades_page_button.IsEnabled = true;
             metadata_page_button.IsEnabled = true;
+            stagemap_page_button.IsEnabled = true;
             
             // reset vis of filter boxes
             Drop_box.Visibility = Visibility.Visible;
@@ -964,6 +1020,8 @@ namespace RC_save_editor
                 upgrades_page_button.IsEnabled = false;
             else if (new_view == view_mode.metadata)
                 metadata_page_button.IsEnabled = false;
+            else if (new_view == view_mode.stagemap)
+                stagemap_page_button.IsEnabled = false;
             
 
             // now handle all the controls that need to be adjusted for page load
@@ -976,7 +1034,7 @@ namespace RC_save_editor
                 console_page.Visibility = Visibility.Collapsed;
                 metadata_page.Visibility = Visibility.Collapsed;
                 id_list_page.Visibility = Visibility.Visible;
-                //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
+                stagemap_list_page.Visibility = Visibility.Collapsed;
 
                 // hide the extra id list if we're not on upgrades
                 
@@ -1000,11 +1058,23 @@ namespace RC_save_editor
                 console_page.Visibility = Visibility.Collapsed;
                 metadata_page.Visibility = Visibility.Visible;
                 id_list_page.Visibility = Visibility.Collapsed;
-                //id_list_page.Visibility = Visibility.Collapsed; // stagemap page
+                stagemap_list_page.Visibility = Visibility.Collapsed;
                 
                 current_view = new_view;
                 return;
             }
+
+            if (new_view == view_mode.stagemap){
+                console_page.Visibility = Visibility.Collapsed;
+                metadata_page.Visibility = Visibility.Collapsed;
+                id_list_page.Visibility = Visibility.Collapsed;
+                stagemap_list_page.Visibility = Visibility.Visible;
+                
+                current_view = new_view;
+                ReloadStagemaps();
+                return;
+            }
+
             if (new_view == view_mode.output){
                 current_view = new_view;
                 return;
@@ -1017,6 +1087,7 @@ namespace RC_save_editor
         private void NavigateToRelics(object sender, RoutedEventArgs e)      => SwapView(view_mode.Relics);
         private void NavigateToUpgrades(object sender, RoutedEventArgs e)    => SwapView(view_mode.Upgrades);
         private void NavigateToMetadata(object sender, RoutedEventArgs e)    => SwapView(view_mode.metadata);
+        private void NavigateToStagemap(object sender, RoutedEventArgs e)    => SwapView(view_mode.stagemap);
         private void NavigateToOutput(string output){
             SwapView(view_mode.output);
             console_feed.Text = output;
