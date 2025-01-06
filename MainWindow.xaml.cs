@@ -20,6 +20,7 @@ using System;
 using doody;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
+using static RC_save_editor.SaveGameInstance;
 
 
 
@@ -162,7 +163,115 @@ namespace RC_save_editor
                         case "researchBranches":
                             break;
                         case "stageMap":
+                            // TODO: remove once we have a proper stage map editor
                             savegame.stage_map = item.Value.ToString(Formatting.None); // this should hopefully just yoink the inner json text
+                            
+                            savegame.currentStage = (int)item.Value.currentStage.Value;
+                            foreach (var stage in item.Value.levelMaps){
+                                StageMap new_stage = new StageMap();
+                                new_stage.chosenField = (int)stage.chosenField.Value;
+                                new_stage.levelCount = (int)stage.levelCount.Value;
+                                new_stage.maxWidth = (int)stage.maxWidth.Value;
+                                new_stage.coinReward = (int)stage.coinReward.Value;
+                                new_stage.startCrystalReward = (int)stage.startCrystalReward.Value;
+                                new_stage.researchPointsReward = (int)stage.researchPointsReward.Value;
+                                new_stage.currentLevel = (int)stage.currentLevel.Value;
+                                new_stage.currentField = (int)stage.currentField.Value;
+                                new_stage.isCurrentLevelFinished = (bool)stage.isCurrentLevelFinished.Value;
+                                new_stage.bossAiPrefabName = (string)stage.bossAiPrefabName.Value;
+                                new_stage.bossWorldPrefabName = (string)stage.bossWorldPrefabName.Value;
+                                new_stage.bossMapScriptableObjectName = (string)stage.bossMapScriptableObjectName.Value;
+
+                                new_stage.cardRewardParameters.rarity = (int)stage.cardRewardParameters.rarity.Value;
+                                new_stage.cardRewardParameters.rareProbability = (float)stage.cardRewardParameters.rareProbability.Value;
+                                new_stage.cardRewardParameters.ultraRareProbability = (float)stage.cardRewardParameters.ultraRareProbability.Value;
+                                new_stage.upgradeRewardParameters.rarity = (int)stage.upgradeRewardParameters.rarity.Value;
+                                new_stage.upgradeRewardParameters.rareProbability = (float)stage.upgradeRewardParameters.rareProbability.Value;
+                                new_stage.upgradeRewardParameters.ultraRareProbability = (float)stage.upgradeRewardParameters.ultraRareProbability.Value;
+                                new_stage.relicRewardParameters.rarity = (int)stage.relicRewardParameters.rarity.Value;
+                                new_stage.relicRewardParameters.rareProbability = (float)stage.relicRewardParameters.rareProbability.Value;
+                                new_stage.relicRewardParameters.ultraRareProbability = (float)stage.relicRewardParameters.ultraRareProbability.Value;
+                                new_stage.researchRewardParameters.rarity = (int)stage.researchRewardParameters.rarity.Value;
+                                new_stage.researchRewardParameters.rareProbability = (float)stage.researchRewardParameters.rareProbability.Value;
+                                new_stage.researchRewardParameters.ultraRareProbability = (float)stage.researchRewardParameters.ultraRareProbability.Value;
+
+                                new_stage.shopScenes = stage.shopScenes.ToString(Formatting.None); // dont bother processing, just copy the inner json so we can paste it back in later
+                                
+                                foreach (var row in stage.connectionsPerLevel){
+                                    List<KeyValuePair<uint, uint>> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add(new KeyValuePair<uint, uint>((uint)column[0], (uint)column[1]));
+                                    new_stage.connectionsPerLevel.Add(column_list);
+                                }
+                                foreach (var step in stage.chosenPath)
+                                    new_stage.chosenPath.Add((uint)step.Value);
+                                
+
+                                foreach (var row in stage.fieldsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.fieldsPerLevel.Add(column_list);
+                                }
+                                foreach (var row in stage.cardRewardsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.cardRewardsPerLevel.Add(column_list);
+                                }
+                                foreach (var row in stage.upgradeRewardsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.upgradeRewardsPerLevel.Add(column_list);
+                                }
+                                foreach (var row in stage.relicRewardsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.relicRewardsPerLevel.Add(column_list);
+                                }
+                                foreach (var row in stage.coinRewardsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.coinRewardsPerLevel.Add(column_list);
+                                }
+                                foreach (var row in stage.startCrystalRewardsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.startCrystalRewardsPerLevel.Add(column_list);
+                                }
+                                foreach (var row in stage.dropRewardsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.dropRewardsPerLevel.Add(column_list);
+                                }
+                                foreach (var row in stage.restSitesPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.restSitesPerLevel.Add(column_list);
+                                }
+                                foreach (var row in stage.researchPointsRewardsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.researchPointsRewardsPerLevel.Add(column_list);
+                                }
+                                foreach (var row in stage.researchRewardsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.researchRewardsPerLevel.Add(column_list);
+                                }
+
+                                savegame.stages.Add(new_stage);
+                            }
+
+
                             break;
                     }
                 }
