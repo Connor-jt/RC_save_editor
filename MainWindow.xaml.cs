@@ -36,10 +36,11 @@ namespace RC_save_editor
             try{
                 LoadAllIDs("id_data\\");
                 AutoFetchGamePath_If_FirstTime();
-                //LoadEncrypted_Path("D:\\Programs\\Steam\\steamapps\\common\\Rogue Command\\Profiles\\Profile3\\savegame.dat");
             } catch (Exception ex){ NavigateToOutput(ex.ToString());}
         }
-        
+        SaveGameInstance savegame = new();
+
+        #region savefile compile/decomp
         private void Menu_LoadPacked(object sender, RoutedEventArgs e){
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.DefaultExt = ".dat";
@@ -251,15 +252,9 @@ namespace RC_save_editor
                 return json.ToString();
             } catch (Exception ex){ NavigateToOutput(ex.ToString()); return "";}
         }
+        #endregion
 
-
-        SaveGameInstance savegame = new();
-
-        public void field_edited(string field_name, string new_value)
-        {
-            savegame.datafields[field_name] = new_value;
-        }
-        
+        #region entity database stuff
         Dictionary<string, string> entity_names = new();
         Dictionary<string, string> entity_desc = new();
         Dictionary<string, UnitRole> entity_roles = new();
@@ -269,6 +264,10 @@ namespace RC_save_editor
         
         Dictionary<string, string> upgrade_names = new();
         Dictionary<string, string> upgrade_desc = new();
+
+        List<string> EnemyDeck_names = new();
+        List<string> Landscape_names = new();
+        List<string> Worlds_names = new();
 
         void LoadAllIDs(string data_folder){
 
@@ -330,8 +329,29 @@ namespace RC_save_editor
             for (int i = 0; i+1 < upgrade_desc_txt.Length; i += 2)
                 if (upgrade_lower_to_upper.TryGetValue(upgrade_desc_txt[i], out string? value))
                     upgrade_desc[value] = upgrade_desc_txt[i + 1];
-        }
 
+            // load stage map definitions
+            foreach (string id in File.ReadAllText(data_folder + "enemy_decks.txt").Split("\t"))
+                EnemyDeck_names.Add(id);
+            foreach (string id in File.ReadAllText(data_folder + "worlds.txt").Split("\t"))
+                Worlds_names.Add(id);
+            foreach (string id in File.ReadAllText(data_folder + "landscapes.txt").Split("\t"))
+                Landscape_names.Add(id);
+            
+            bossAiPrefabName.ItemsSource = EnemyDeck_names;
+            bossWorldPrefabName.ItemsSource = Worlds_names;
+            bossMapScriptableObjectName.ItemsSource = Landscape_names;
+        }
+        #endregion
+
+        #region metadata interactions
+        public void field_edited(string field_name, string new_value)
+        {
+            savegame.datafields[field_name] = new_value;
+        }
+        #endregion
+
+        #region entity list interactions
         private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e){
             if (entries_listview.SelectedIndex < 0 || entries_listview.SelectedIndex >= entries_list.Count){
                 entry_label.Text = "No item selected.";
@@ -674,7 +694,108 @@ namespace RC_save_editor
 
             ReloadAssigned();
         }
+        #endregion
 
+
+        bool is_loading_stage_infos = false;
+        SaveGameInstance.StageMap? current_stagemap = null;
+        #region static field interactions
+        private void chosenField_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(chosenField, ref current_stagemap.chosenField);}
+        private void levelCount_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(levelCount, ref current_stagemap.levelCount);}
+        private void maxWidth_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(maxWidth, ref current_stagemap.maxWidth);}
+        private void coinReward_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(coinReward, ref current_stagemap.coinReward);}
+        private void startCrystalReward_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(startCrystalReward, ref current_stagemap.startCrystalReward);}
+        private void researchPointsReward_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(researchPointsReward, ref current_stagemap.researchPointsReward);}
+        private void isCurrentLevelFinished_Checked(object sender, RoutedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null || isCurrentLevelFinished.IsChecked == null) return;
+            current_stagemap.isCurrentLevelFinished = (bool)isCurrentLevelFinished.IsChecked;
+        }
+        #endregion
+        
+        #region static struct field interactions
+        private void cardRewardParameters_rarity_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(cardRewardParameters_rarity, ref current_stagemap.cardRewardParameters.rarity);}
+        private void cardRewardParameters_rareProbability_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_float_change(cardRewardParameters_rareProbability, ref current_stagemap.cardRewardParameters.rareProbability);}
+        private void cardRewardParameters_ultraRareProbability_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_float_change(cardRewardParameters_ultraRareProbability, ref current_stagemap.cardRewardParameters.ultraRareProbability);}
+
+        private void upgradeRewardParameters_rarity_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(upgradeRewardParameters_rarity, ref current_stagemap.upgradeRewardParameters.rarity);}
+        private void upgradeRewardParameters_rareProbability_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_float_change(upgradeRewardParameters_rareProbability, ref current_stagemap.upgradeRewardParameters.rareProbability);}
+        private void upgradeRewardParameters_ultraRareProbability_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_float_change(upgradeRewardParameters_ultraRareProbability, ref current_stagemap.upgradeRewardParameters.ultraRareProbability);}
+
+        private void relicRewardParameters_rarity_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(relicRewardParameters_rarity, ref current_stagemap.relicRewardParameters.rarity);}
+        private void relicRewardParameters_rareProbability_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_float_change(relicRewardParameters_rareProbability, ref current_stagemap.relicRewardParameters.rareProbability);}
+        private void relicRewardParameters_ultraRareProbability_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_float_change(relicRewardParameters_ultraRareProbability, ref current_stagemap.relicRewardParameters.ultraRareProbability);}
+        
+        private void researchRewardParameters_rarity_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(researchRewardParameters_rarity, ref current_stagemap.researchRewardParameters.rarity);}
+        private void researchRewardParameters_rareProbability_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_float_change(researchRewardParameters_rareProbability, ref current_stagemap.researchRewardParameters.rareProbability);}
+        private void researchRewardParameters_ultraRareProbability_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_float_change(researchRewardParameters_ultraRareProbability, ref current_stagemap.researchRewardParameters.ultraRareProbability);}
+        #endregion
+
+        #region prefab dropdwon interactions
+        private void bossAiPrefabName_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_dropdown_change(bossAiPrefabName, ref current_stagemap.bossAiPrefabName, EnemyDeck_names);}
+        private void bossWorldPrefabName_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_dropdown_change(bossWorldPrefabName, ref current_stagemap.bossWorldPrefabName, Landscape_names);}
+        private void bossMapScriptableObjectName_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_dropdown_change(bossMapScriptableObjectName, ref current_stagemap.bossMapScriptableObjectName, Worlds_names);}
+        #endregion
+
+        void handle_int_change(TextBox field, ref int write_to_value){
+            if (int.TryParse(field.Text, out int result)){
+                write_to_value = result;
+                field.Foreground = Brushes.Black;
+            } else field.Foreground = Brushes.Red;
+        }
+        void handle_float_change(TextBox field, ref float write_to_value){
+            if (float.TryParse(field.Text, out float result)){
+                write_to_value = result;
+                field.Foreground = Brushes.Black;
+            } else field.Foreground = Brushes.Red;
+        }
+        void handle_dropdown_change(ComboBox field, ref string write_to_value, List<string> item_source){
+            if (field.SelectedIndex >= 0 && field.SelectedIndex < item_source.Count)
+                write_to_value = item_source[field.SelectedIndex];
+        }
+
+        #region UI pages navigation
         GridLength upgrade_panel_stored_size = new GridLength(1, GridUnitType.Star);
         void SwapView(view_mode new_view){
             if (new_view == current_view) return;
@@ -791,8 +912,9 @@ namespace RC_save_editor
             SwapView(view_mode.output);
             console_feed.Text = output;
         }
+        #endregion
 
-
+        #region RC profile interactions
         // steam interaction stuff //
         string? game_folder = null;
         void GetGamePath(object sender, RoutedEventArgs e){
@@ -910,5 +1032,8 @@ namespace RC_save_editor
             if (!File.Exists("game_path.txt"))
                 File.WriteAllText("game_path.txt", "");
         }
+
+        #endregion
+
     }
 }

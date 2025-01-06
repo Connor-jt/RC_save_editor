@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RC_save_editor"
         mc:Ignorable="d"
-        Title="MainWindow" Height="550" Width="650">
+        Title="MainWindow" Height="860" Width="650">
     <Grid>
 
         <Grid>
@@ -57,6 +57,7 @@
                 <Button x:Name="relics_page_button"      Content="Relics"      IsEnabled="False"  Padding="4,0,4,0" Height="19" Click="NavigateToRelics"/>
                 <Button x:Name="upgrades_page_button"    Content="Upgrades"    IsEnabled="False"  Padding="4,0,4,0" Height="19" Click="NavigateToUpgrades"/>
                 <Button x:Name="metadata_page_button"    Content="Metadata"    IsEnabled="False"  Padding="4,0,4,0" Height="19" Click="NavigateToMetadata"/>
+                <Button x:Name="stagemap_page_button"    Content="Stagemap"    IsEnabled="False"  Padding="4,0,4,0" Height="19" Click="NavigateToMetadata"/>
             </StackPanel>
 
             <Border Grid.Row="2" Background="#FFE4E4E4" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="1,1,0,1">
@@ -230,6 +231,240 @@
                             <Border Grid.Row="2" Background="White" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="2,0,2,2" Grid.ColumnSpan="2">
                                 <ListView x:Name="entries_listview_extra"/>
                             </Border>
+                        </Grid>
+                    </Grid>
+
+                    <!-- Stagemap data page-->
+                    <Grid x:Name="stagemap_list_page">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="1"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+                        <GridSplitter Grid.Column="0" Width="3" Background="Transparent" HorizontalAlignment="Right"/>
+                        <GridSplitter Grid.Column="1" Width="3" Background="Transparent" HorizontalAlignment="Right"/>
+
+                        <Separator Grid.Column="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition  Height="20"/>
+                                <RowDefinition Height="120"/>
+                                <RowDefinition  Height="24"/>
+                                <RowDefinition  Height="3"/>
+                                <RowDefinition  Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Select Stage (Active: -1)"  FontSize="16" Margin="2,0,0,0"/>
+
+                            <Border Grid.Row="1" Background="White" BorderBrush="#FF9C9C9C" BorderThickness="1" Margin="2,2,2,2" >
+                                <ListView x:Name="assigned_stageview"/>
+                            </Border>
+                            <Grid Grid.Row="2" Margin="2,0,2,0" >
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="assign_stage_button" Content="Copy" Padding="10,0,10,0" Grid.Column="0" HorizontalAlignment="Left" Height="19"/>
+                                <Button x:Name="remove_stage_button" Content="Remove" Padding="10,0,10,0" Grid.Column="1" HorizontalAlignment="Left" Height="19"/>
+                                <Button x:Name="current_stage_button" Content="Set Current" Padding="10,0,10,0" Grid.Column="3" HorizontalAlignment="Left" Height="19" />
+                            </Grid>
+
+                            <Separator Grid.Row="3" VerticalAlignment="Bottom" Margin="0,2,0,0" />
+                            <ScrollViewer Grid.Row="4">
+                                <Grid Margin="2,0,2,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="5,0,5,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Separator Grid.Column="0" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                        <TextBlock Grid.Column="1" Text="Stage Config" Margin="5, 0, 5, 0" Foreground="#FFA0A0A0"/>
+                                        <Separator Grid.Column="2" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                    </Grid>
+                                    <TextBlock  Grid.Row="1" Text="AI Units: " />
+                                    <ComboBox   Grid.Row="1" x:Name="bossAiPrefabName" Grid.Column="1" />
+
+                                    <TextBlock  Grid.Row="2" Text="Biome type: " />
+                                    <ComboBox   Grid.Row="2" x:Name="bossWorldPrefabName" Grid.Column="1" />
+                                    
+                                    <TextBlock  Grid.Row="3" Text="Map Generator: " />
+                                    <ComboBox   Grid.Row="3" x:Name="bossMapScriptableObjectName" Grid.Column="1" />
+
+                                    <Grid Grid.Row="4" Grid.ColumnSpan="2" Margin="5,0,5,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Separator Grid.Column="0" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                        <TextBlock Grid.Column="1" Text="Reward Map Dimensions" Margin="5, 0, 5, 0" Foreground="#FFA0A0A0"/>
+                                        <Separator Grid.Column="2" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                    </Grid>
+
+                                    <TextBlock  Grid.Row="5" Text="Row Count: " />
+                                    <TextBox    Grid.Row="5" x:Name="levelCount" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                    <TextBlock  Grid.Row="6" Text="Column Count: " />
+                                    <TextBox    Grid.Row="6" x:Name="maxWidth" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                    <Grid Grid.Row="7" Grid.ColumnSpan="2" Margin="5,0,5,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Separator Grid.Column="0" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                        <TextBlock Grid.Column="1" Text="Reward Quantities" Margin="5, 0, 5, 0" Foreground="#FFA0A0A0"/>
+                                        <Separator Grid.Column="2" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                    </Grid>
+                                
+                                    <TextBlock  Grid.Row="8" Text="Coins given: " />
+                                    <TextBox    Grid.Row="8" x:Name="coinReward" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                    <TextBlock  Grid.Row="9" Text="Start Crystals given: " />
+                                    <TextBox    Grid.Row="9" x:Name="startCrystalReward" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                    <TextBlock  Grid.Row="10" Text="Research Points given: " />
+                                    <TextBox    Grid.Row="10" x:Name="researchPointsReward" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                    <Grid Grid.Row="11" Grid.ColumnSpan="2" Margin="5,0,5,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Separator Grid.Column="0" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                        <TextBlock Grid.Column="1" Text="Reward Path Taken" Margin="5, 0, 5, 0" Foreground="#FFA0A0A0"/>
+                                        <Separator Grid.Column="2" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                    </Grid>
+                                
+                                    <TextBlock  Grid.Row="12" Text="Chosen Column: " />
+                                    <TextBox    Grid.Row="12" x:Name="chosenField" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                
+                                    <TextBlock  Grid.Row="13" Text="Current Reward Row: " />
+                                    <TextBox    Grid.Row="13" x:Name="currentLevel" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                    <TextBlock  Grid.Row="14" Text="Current Reward Column: " />
+                                    <TextBox    Grid.Row="14" x:Name="currentField" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                    
+                                    <TextBlock  Grid.Row="15" Text="Current Row finished: " />
+                                    <CheckBox   Grid.Row="15" x:Name="isCurrentLevelFinished" Grid.Column="1" Checked="isCurrentLevelFinished_Checked" Unchecked="isCurrentLevelFinished_Checked"/>
+
+                                    <Grid Grid.Row="16" Grid.ColumnSpan="2" Margin="5,0,5,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Separator Grid.Column="0" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                        <TextBlock Grid.Column="1" Text="Card Reward Params" Margin="5, 0, 5, 0" Foreground="#FFA0A0A0"/>
+                                        <Separator Grid.Column="2" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                    </Grid>
+                                    <TextBlock  Grid.Row="17" Text="Rarity: " />
+                                    <TextBox    Grid.Row="17" x:Name="cardRewardParameters_rarity" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                    <TextBlock  Grid.Row="18" Text="Rare Probability: " />
+                                    <TextBox    Grid.Row="18" x:Name="cardRewardParameters_rareProbability" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                    <TextBlock  Grid.Row="19" Text="Ultra Rare Probability: " />
+                                    <TextBox    Grid.Row="19" x:Name="cardRewardParameters_ultraRareProbability" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                    <Grid Grid.Row="20" Grid.ColumnSpan="2" Margin="5,0,5,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Separator Grid.Column="0" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                        <TextBlock Grid.Column="1" Text="Upgrade Reward Params" Margin="5, 0, 5, 0" Foreground="#FFA0A0A0"/>
+                                        <Separator Grid.Column="2" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                    </Grid>
+                                    <TextBlock  Grid.Row="21" Text="Rarity: " />
+                                    <TextBox    Grid.Row="21" x:Name="upgradeRewardParameters_rarity" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                    <TextBlock  Grid.Row="22" Text="Rare Probability: " />
+                                    <TextBox    Grid.Row="22" x:Name="upgradeRewardParameters_rareProbability" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                    <TextBlock  Grid.Row="23" Text="Ultra Rare Probability: " />
+                                    <TextBox    Grid.Row="23" x:Name="upgradeRewardParameters_ultraRareProbability" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                    <Grid Grid.Row="24" Grid.ColumnSpan="2" Margin="5,0,5,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Separator Grid.Column="0" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                        <TextBlock Grid.Column="1" Text="Relic Reward Params" Margin="5, 0, 5, 0" Foreground="#FFA0A0A0"/>
+                                        <Separator Grid.Column="2" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                    </Grid>
+                                    <TextBlock  Grid.Row="25" Text="Rarity: " />
+                                    <TextBox    Grid.Row="25" x:Name="relicRewardParameters_rarity" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                    <TextBlock  Grid.Row="26" Text="Rare Probability: " />
+                                    <TextBox    Grid.Row="26" x:Name="relicRewardParameters_rareProbability" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                    <TextBlock  Grid.Row="27" Text="Ultra Rare Probability: " />
+                                    <TextBox    Grid.Row="27" x:Name="relicRewardParameters_ultraRareProbability" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                    <Grid Grid.Row="28" Grid.ColumnSpan="2" Margin="5,0,5,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Separator Grid.Column="0" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                        <TextBlock Grid.Column="1" Text="Research Reward Params" Margin="5, 0, 5, 0" Foreground="#FFA0A0A0"/>
+                                        <Separator Grid.Column="2" Height="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,0,0" Background="#FFA0A0A0"/>
+                                    </Grid>
+                                    <TextBlock  Grid.Row="29" Text="Rarity: " />
+                                    <TextBox    Grid.Row="29" x:Name="researchRewardParameters_rarity" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                    <TextBlock  Grid.Row="30" Text="Rare Probability: " />
+                                    <TextBox    Grid.Row="30" x:Name="researchRewardParameters_rareProbability" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+                                    <TextBlock  Grid.Row="31" Text="Ultra Rare Probability: " />
+                                    <TextBox    Grid.Row="31" x:Name="researchRewardParameters_ultraRareProbability" Grid.Column="1" Text="-1" TextChanged="coinReward_TextChanged" />
+
+                                </Grid>
+
+                            </ScrollViewer>
                         </Grid>
                     </Grid>
                 </Grid>
