@@ -816,17 +816,15 @@ namespace RC_save_editor
 
         #region stagemap interactions
         bool is_loading_stage_infos = false;
-        SaveGameInstance.StageMap? current_stagemap = null;
-        void ReloadStagemaps(){
-            if (savegame.stages.Count <= 0){
-                savegame.stages.Add(new StageMap());
-                NavigateToOutput("your savegame had ZERO stages, i've created a new one and inserted it, but bewarned the values may be misconfigured!");
-                return;
-            }
+        StageMap? current_stagemap = null; // must null out if we close the current one?
+        void ReloadStagemaps(StageMap target_stage){
+            current_stagemap = target_stage;
 
             is_loading_stage_infos = true;
             if (current_stagemap == null)
                 current_stagemap = savegame.stages[0];
+
+            ResetMapStage_ValidityStates();
 
             chosenField.Text = current_stagemap.chosenField.ToString();
             levelCount.Text = current_stagemap.levelCount.ToString();
@@ -861,11 +859,122 @@ namespace RC_save_editor
 
             is_loading_stage_infos = false;
         }
+        void ReloadStageList(){
+            int new_index = 0;
+            List<string> new_list = new List<string>();
+            for (int i = 0; i < savegame.stages.Count; i++){
+                new_list.Add($"[{i}] {savegame.stages[i].bossMapScriptableObjectName}");
+                if (savegame.stages[i] == current_stagemap)
+                    new_index = i;
+            }
+            
+            if (savegame.stages.Count <= 0){
+                savegame.stages.Add(new StageMap());
+                NavigateToOutput("your savegame had ZERO stages, i've created a new one and inserted it, but bewarned the values may be misconfigured! (also this shouldn't be possible)");
+                return;
+            }
+            // show/hide the remove button depending on how many entries we have
+            if (savegame.stages.Count == 1)
+                 remove_stage_button.IsEnabled = false;
+            else remove_stage_button.IsEnabled = true;
+
+
+            is_loading_stage_infos = true;
+            assigned_stageview.ItemsSource = new_list;
+            assigned_stageview.SelectedIndex = new_index;
+            is_loading_stage_infos = false;
+            
+            RedrawArrowButtons();
+
+            // also update the active stage index (doing it here because it doesn't need to refresh with every selected stage change)
+            select_stage_box.Text = $"Select Stage (Active: {savegame.currentStage})";
+
+            if (current_stagemap == null)
+                ReloadStagemaps(savegame.stages[new_index]); // this will always be 0
+        }
+        private void assigned_stageview_SelectionChanged(object sender, SelectionChangedEventArgs e){
+            if (is_loading_stage_infos) return;
+
+            if (assigned_stageview.SelectedIndex < 0 || assigned_stageview.SelectedIndex >= savegame.stages.Count){
+                NavigateToOutput("failed selected stage index!! impossible error");
+                return;}
+
+            ReloadStagemaps(savegame.stages[assigned_stageview.SelectedIndex]);
+            RedrawArrowButtons();
+        }
+        void RedrawArrowButtons(){
+            // show/hide the up/down buttons depending on the selected index
+            if (assigned_stageview.SelectedIndex == 0)
+                 up_stage_button.IsEnabled = false;
+            else up_stage_button.IsEnabled = true;
+            if (assigned_stageview.SelectedIndex == savegame.stages.Count-1)
+                 down_stage_button.IsEnabled = false;
+            else down_stage_button.IsEnabled = true;
+        }
+        private void CopyStage_click(object sender, RoutedEventArgs e){
+            if (assigned_stageview.SelectedIndex < 0 || assigned_stageview.SelectedIndex >= savegame.stages.Count){
+                NavigateToOutput("bad selected stage index!! impossible error");
+                return;}
+
+            Savegame_add_at(new StageMap(savegame.stages[assigned_stageview.SelectedIndex]), assigned_stageview.SelectedIndex+1);
+            ReloadStageList();
+        }
+        private void RemoveStage_click(object sender, RoutedEventArgs e){
+            if (assigned_stageview.SelectedIndex < 0 || assigned_stageview.SelectedIndex >= savegame.stages.Count){
+                NavigateToOutput("bad selected stage index!! impossible error");
+                return;}
+            if (savegame.stages.Count <= 1) return; // do not remove the last one !!!
+
+            savegame.stages.RemoveAt(assigned_stageview.SelectedIndex);
+            current_stagemap = null;
+            ReloadStageList();
+        }
+        private void SetCurrentStage_click(object sender, RoutedEventArgs e){
+            savegame.currentStage = assigned_stageview.SelectedIndex;
+            select_stage_box.Text = $"Select Stage (Active: {savegame.currentStage})";
+        }
+
+        private void UpStage_click(object sender, RoutedEventArgs e){ // decrements index
+            if (assigned_stageview.SelectedIndex < 0 || assigned_stageview.SelectedIndex >= savegame.stages.Count){
+                NavigateToOutput("bad selected stage index!! impossible error");
+                return;}
+
+            if (assigned_stageview.SelectedIndex == 0) return;
+
+            StageMap test = savegame.stages[assigned_stageview.SelectedIndex];
+            savegame.stages.RemoveAt(assigned_stageview.SelectedIndex);
+            Savegame_add_at(test, assigned_stageview.SelectedIndex-1);
+            ReloadStageList();
+        }
+        private void DownStage_click(object sender, RoutedEventArgs e){ // decrements index
+            if (assigned_stageview.SelectedIndex < 0 || assigned_stageview.SelectedIndex >= savegame.stages.Count){
+                NavigateToOutput("bad selected stage index!! impossible error");
+                return;}
+
+            if (assigned_stageview.SelectedIndex >= savegame.stages.Count-1) return;
+            
+            StageMap test = savegame.stages[assigned_stageview.SelectedIndex];
+            savegame.stages.RemoveAt(assigned_stageview.SelectedIndex);
+            Savegame_add_at(test, assigned_stageview.SelectedIndex+1);
+            ReloadStageList();
+        }
+        void Savegame_add_at(StageMap map, int index){
+            if (index >= savegame.stages.Count)
+                 savegame.stages.Add(map);
+            else savegame.stages.Insert(index, map);
+        }
+
 
         #region static field interactions
         private void chosenField_TextChanged(object sender, TextChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
             handle_int_change(chosenField, ref current_stagemap.chosenField);}
+        private void currentLevel_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(currentLevel, ref current_stagemap.currentLevel);}
+        private void currentField_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            handle_int_change(currentField, ref current_stagemap.currentField);}
         private void levelCount_TextChanged(object sender, TextChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
             handle_int_change(levelCount, ref current_stagemap.levelCount);}
@@ -928,19 +1037,42 @@ namespace RC_save_editor
             if (is_loading_stage_infos || current_stagemap == null) return;
             handle_float_change(researchRewardParameters_ultraRareProbability, ref current_stagemap.researchRewardParameters.ultraRareProbability);}
         #endregion
-
+        void ResetMapStage_ValidityStates(){
+            chosenField.Foreground = Brushes.Black;
+            currentLevel.Foreground = Brushes.Black;
+            currentField.Foreground = Brushes.Black;
+            levelCount.Foreground = Brushes.Black;
+            maxWidth.Foreground = Brushes.Black;
+            coinReward.Foreground = Brushes.Black;
+            startCrystalReward.Foreground = Brushes.Black;
+            researchPointsReward.Foreground = Brushes.Black;
+            isCurrentLevelFinished.Foreground = Brushes.Black;
+            cardRewardParameters_rarity.Foreground = Brushes.Black;
+            cardRewardParameters_rareProbability.Foreground = Brushes.Black;
+            cardRewardParameters_ultraRareProbability.Foreground = Brushes.Black;
+            upgradeRewardParameters_rarity.Foreground = Brushes.Black;
+            upgradeRewardParameters_rareProbability.Foreground = Brushes.Black;
+            upgradeRewardParameters_ultraRareProbability.Foreground = Brushes.Black;
+            relicRewardParameters_rarity.Foreground = Brushes.Black;
+            relicRewardParameters_rareProbability.Foreground = Brushes.Black;
+            relicRewardParameters_ultraRareProbability.Foreground = Brushes.Black;
+            researchRewardParameters_rarity.Foreground = Brushes.Black;
+            researchRewardParameters_rareProbability.Foreground = Brushes.Black;
+            researchRewardParameters_ultraRareProbability.Foreground = Brushes.Black;
+        }
         #region prefab dropdwon interactions
-        private void bossAiPrefabName_TextChanged(object sender, TextChangedEventArgs e){
+        private void bossAiPrefabName_SelectionChanged(object sender, SelectionChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
             handle_dropdown_change(bossAiPrefabName, ref current_stagemap.bossAiPrefabName, EnemyDeck_names);}
-        private void bossWorldPrefabName_TextChanged(object sender, TextChangedEventArgs e){
+        private void bossWorldPrefabName_SelectionChanged(object sender, SelectionChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
-            handle_dropdown_change(bossWorldPrefabName, ref current_stagemap.bossWorldPrefabName, Landscape_names);}
-        private void bossMapScriptableObjectName_TextChanged(object sender, TextChangedEventArgs e){
+            handle_dropdown_change(bossWorldPrefabName, ref current_stagemap.bossWorldPrefabName, Worlds_names );}
+        private void bossMapScriptableObjectName_SelectionChanged(object sender, SelectionChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
-            handle_dropdown_change(bossMapScriptableObjectName, ref current_stagemap.bossMapScriptableObjectName, Worlds_names);}
+            handle_dropdown_change(bossMapScriptableObjectName, ref current_stagemap.bossMapScriptableObjectName, Landscape_names);
+            ReloadStageList();} // we actually have to reload stage list here, since it updates the name of the stage in the listview
         #endregion
-
+        
         void handle_int_change(TextBox field, ref int write_to_value){
             if (int.TryParse(field.Text, out int result)){
                 write_to_value = result;
@@ -956,6 +1088,11 @@ namespace RC_save_editor
         void handle_dropdown_change(ComboBox field, ref string write_to_value, List<string> item_source){
             if (field.SelectedIndex >= 0 && field.SelectedIndex < item_source.Count)
                 write_to_value = item_source[field.SelectedIndex];
+            else { // reset??
+                is_loading_stage_infos = true;
+                field.SelectedIndex = 0;
+                is_loading_stage_infos = false;
+            }
         }
         #endregion
 
@@ -1022,7 +1159,12 @@ namespace RC_save_editor
                 metadata_page_button.IsEnabled = false;
             else if (new_view == view_mode.stagemap)
                 stagemap_page_button.IsEnabled = false;
-            
+
+            if (current_view == view_mode.Upgrades) {
+                upgrade_panel_stored_size = id_list_page.ColumnDefinitions[0].Width;
+                id_list_page.ColumnDefinitions[0].Width = new GridLength(0);
+                extra_id_list.Visibility = Visibility.Collapsed; 
+            }
 
             // now handle all the controls that need to be adjusted for page load
             if (new_view == view_mode.Engineer
@@ -1042,11 +1184,7 @@ namespace RC_save_editor
                     id_list_page.ColumnDefinitions[0].Width = upgrade_panel_stored_size;
                     extra_id_list.Visibility = Visibility.Visible;
 
-                }else if (current_view == view_mode.Upgrades) {
-                    upgrade_panel_stored_size = id_list_page.ColumnDefinitions[0].Width;
-                    id_list_page.ColumnDefinitions[0].Width = new GridLength(0);
-                    extra_id_list.Visibility = Visibility.Collapsed; 
-                }
+                } 
 
                 current_view = new_view;
                 ReloadEntries();
@@ -1071,7 +1209,7 @@ namespace RC_save_editor
                 stagemap_list_page.Visibility = Visibility.Visible;
                 
                 current_view = new_view;
-                ReloadStagemaps();
+                ReloadStageList();
                 return;
             }
 

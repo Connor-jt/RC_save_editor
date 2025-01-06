@@ -88,6 +88,56 @@ namespace RC_save_editor{
                 public int rarity = 0;
                 public float rareProbability = 0.3f;
                 public float ultraRareProbability = 0.3f;
+                public RewardParameters() { }
+                public RewardParameters(RewardParameters source){
+                    rarity = source.rarity;
+                    rareProbability = source.rareProbability;
+                    ultraRareProbability = source.ultraRareProbability;
+                }
+            }
+            
+            public StageMap(){ }
+            public StageMap(StageMap source){
+                static List<List<T>> Clone2D<T>(List<List<T>> list) { 
+                    List<List<T>> clone = new List<List<T>>(); 
+                    foreach (List<T> innerList in list) 
+                        clone.Add(new List<T>(innerList)); 
+                    return clone;
+                }
+
+                coinReward = source.coinReward;
+                startCrystalReward = source.startCrystalReward;
+                researchPointsReward = source.researchPointsReward;
+                currentLevel = source.currentLevel;
+                currentField = source.currentField;
+                chosenField = source.chosenField;
+                isCurrentLevelFinished = source.isCurrentLevelFinished;
+                bossAiPrefabName = source.bossAiPrefabName;
+                bossWorldPrefabName = source.bossWorldPrefabName;
+                bossMapScriptableObjectName = source.bossMapScriptableObjectName;
+                levelCount = source.levelCount;
+                maxWidth = source.maxWidth;
+                cardRewardParameters = new RewardParameters(source.cardRewardParameters);
+                upgradeRewardParameters = new RewardParameters(source.upgradeRewardParameters);
+                relicRewardParameters = new RewardParameters(source.relicRewardParameters);
+                researchRewardParameters = new RewardParameters(source.researchRewardParameters);
+                shopScenes = source.shopScenes;
+                chosenPath = new List<uint>(source.chosenPath);
+
+                fieldsPerLevel = Clone2D(source.fieldsPerLevel);
+                connectionsPerLevel = Clone2D(source.connectionsPerLevel);
+
+                shopsPerLevel = Clone2D(source.shopsPerLevel);
+                cardRewardsPerLevel = Clone2D(source.cardRewardsPerLevel);
+                upgradeRewardsPerLevel = Clone2D(source.upgradeRewardsPerLevel);
+                relicRewardsPerLevel = Clone2D(source.relicRewardsPerLevel);
+                coinRewardsPerLevel = Clone2D(source.coinRewardsPerLevel);
+                startCrystalRewardsPerLevel = Clone2D(source.startCrystalRewardsPerLevel);
+                dropRewardsPerLevel = Clone2D(source.dropRewardsPerLevel);
+                restSitesPerLevel = Clone2D(source.restSitesPerLevel);
+                researchPointsRewardsPerLevel = Clone2D(source.researchPointsRewardsPerLevel);
+                researchRewardsPerLevel = Clone2D(source.researchRewardsPerLevel);
+
             }
         }
 
