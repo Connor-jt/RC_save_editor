@@ -127,16 +127,16 @@ namespace RC_save_editor{
                 fieldsPerLevel = Clone2D(source.fieldsPerLevel);
                 connectionsPerLevel = Clone2D(source.connectionsPerLevel);
 
-                shopsPerLevel = Clone2D(source.shopsPerLevel);
-                cardRewardsPerLevel = Clone2D(source.cardRewardsPerLevel);
-                upgradeRewardsPerLevel = Clone2D(source.upgradeRewardsPerLevel);
-                relicRewardsPerLevel = Clone2D(source.relicRewardsPerLevel);
-                coinRewardsPerLevel = Clone2D(source.coinRewardsPerLevel);
-                startCrystalRewardsPerLevel = Clone2D(source.startCrystalRewardsPerLevel);
-                dropRewardsPerLevel = Clone2D(source.dropRewardsPerLevel);
-                restSitesPerLevel = Clone2D(source.restSitesPerLevel);
-                researchPointsRewardsPerLevel = Clone2D(source.researchPointsRewardsPerLevel);
-                researchRewardsPerLevel = Clone2D(source.researchRewardsPerLevel);
+                shopsPerLevel = Clone2D(source.shopsPerLevel); // red
+                cardRewardsPerLevel = Clone2D(source.cardRewardsPerLevel); // purple
+                upgradeRewardsPerLevel = Clone2D(source.upgradeRewardsPerLevel); // dark blue
+                relicRewardsPerLevel = Clone2D(source.relicRewardsPerLevel); // dark green
+                coinRewardsPerLevel = Clone2D(source.coinRewardsPerLevel); // orange
+                startCrystalRewardsPerLevel = Clone2D(source.startCrystalRewardsPerLevel); // light blue
+                dropRewardsPerLevel = Clone2D(source.dropRewardsPerLevel); // light green
+                restSitesPerLevel = Clone2D(source.restSitesPerLevel); // pink
+                researchPointsRewardsPerLevel = Clone2D(source.researchPointsRewardsPerLevel); // yellow
+                researchRewardsPerLevel = Clone2D(source.researchRewardsPerLevel); // black
 
             }
         }

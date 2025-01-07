@@ -213,6 +213,12 @@ namespace RC_save_editor
                                         column_list.Add((uint)column.Value);
                                     new_stage.fieldsPerLevel.Add(column_list);
                                 }
+                                foreach (var row in stage.shopsPerLevel){
+                                    List<uint> column_list = new();
+                                    foreach (var column in row)
+                                        column_list.Add((uint)column.Value);
+                                    new_stage.shopsPerLevel.Add(column_list);
+                                }
                                 foreach (var row in stage.cardRewardsPerLevel){
                                     List<uint> column_list = new();
                                     foreach (var column in row)
@@ -821,9 +827,6 @@ namespace RC_save_editor
             current_stagemap = target_stage;
 
             is_loading_stage_infos = true;
-            if (current_stagemap == null)
-                current_stagemap = savegame.stages[0];
-
             ResetMapStage_ValidityStates();
 
             chosenField.Text = current_stagemap.chosenField.ToString();
@@ -856,7 +859,9 @@ namespace RC_save_editor
                 bossWorldPrefabName.SelectedIndex = Worlds_to_index[current_stagemap.bossWorldPrefabName];
                 bossMapScriptableObjectName.SelectedIndex = Landscape_to_index[current_stagemap.bossMapScriptableObjectName];
             } catch (Exception ex){ NavigateToOutput(ex.ToString()); is_loading_stage_infos = false; return;}
-
+            
+            // also we have to setup our nice reward map visuals
+            LoadNewRewardMap();
             is_loading_stage_infos = false;
         }
         void ReloadStageList(){
@@ -964,6 +969,180 @@ namespace RC_save_editor
             else savegame.stages.Insert(index, map);
         }
 
+        #region reward map visuals
+        Dictionary<string, Border> reward_tile_map = new();
+
+        int curr_reward_rows = 0;
+        int curr_reward_cols = 0;
+        enum reward_type{
+            None,
+            Coin,
+            StartCrystal,
+            ResearchPoints,
+            Card,
+            Upgrade,
+            Relic,
+            Research
+        }
+        void LoadNewRewardMap(){
+            if (current_stagemap == null) return;
+            
+            // check to see if our grid thingo needs to be recalculated
+            if (current_stagemap.levelCount != curr_reward_rows || current_stagemap.maxWidth != curr_reward_cols){
+                curr_reward_rows = current_stagemap.levelCount;
+                curr_reward_cols = current_stagemap.maxWidth;
+                RecreateRewardGrid();
+            }
+            // then repaint
+            RedrawRewardGrid();
+        }
+        void ResizeRewardmapData(int rows, int columns){
+            if (current_stagemap == null) return;
+            // if no change, skip
+            if (rows == curr_reward_rows && columns == curr_reward_cols)
+                return;
+
+            // if the columns increased, then we dont need to do anything
+            // if columns decreased, then we need to search through all the arrays and remove those indicies
+
+            // if rows decreased, remove last list in each thingo
+            // if rows increased, add new list to each
+            
+            // regenerate the reward tile map if the size has changed
+            curr_reward_rows = rows;
+            curr_reward_cols = columns;
+            RecreateRewardGrid();
+            RedrawRewardGrid();
+            
+
+        }
+        void RedrawRewardGrid(){
+            if (current_stagemap == null) return;
+            // update the visuals of each reward tile
+            foreach (var v in reward_tile_map)
+                v.Value.Background = Brushes.White;
+
+            // shops
+            for (int row = 0; row < current_stagemap.shopsPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.shopsPerLevel[row].Count; j++){
+                    uint col = current_stagemap.shopsPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Red;
+                }
+            }
+            // cards
+            for (int row = 0; row < current_stagemap.cardRewardsPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.cardRewardsPerLevel[row].Count; j++){
+                    uint col = current_stagemap.cardRewardsPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Purple;
+                }
+            }
+            // upgrades
+            for (int row = 0; row < current_stagemap.upgradeRewardsPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.upgradeRewardsPerLevel[row].Count; j++){
+                    uint col = current_stagemap.upgradeRewardsPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.DarkBlue;
+                }
+            }
+            // relics
+            for (int row = 0; row < current_stagemap.relicRewardsPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.relicRewardsPerLevel[row].Count; j++){
+                    uint col = current_stagemap.relicRewardsPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Green;
+                }
+            }
+            // coins
+            for (int row = 0; row < current_stagemap.coinRewardsPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.coinRewardsPerLevel[row].Count; j++){
+                    uint col = current_stagemap.coinRewardsPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Orange;
+                }
+            }
+            // start crystals
+            for (int row = 0; row < current_stagemap.startCrystalRewardsPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.startCrystalRewardsPerLevel[row].Count; j++){
+                    uint col = current_stagemap.startCrystalRewardsPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.LightBlue;
+                }
+            }
+            // drops
+            for (int row = 0; row < current_stagemap.dropRewardsPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.dropRewardsPerLevel[row].Count; j++){
+                    uint col = current_stagemap.dropRewardsPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.LightGreen;
+                }
+            }
+            // lives
+            for (int row = 0; row < current_stagemap.restSitesPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.restSitesPerLevel[row].Count; j++){
+                    uint col = current_stagemap.restSitesPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.HotPink;
+                }
+            }
+            // research points
+            for (int row = 0; row < current_stagemap.researchPointsRewardsPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.researchPointsRewardsPerLevel[row].Count; j++){
+                    uint col = current_stagemap.researchPointsRewardsPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Yellow;
+                }
+            }
+            // research rewards
+            for (int row = 0; row < current_stagemap.researchRewardsPerLevel.Count; row++){
+                for (int j = 0; j < current_stagemap.researchRewardsPerLevel[row].Count; j++){
+                    uint col = current_stagemap.researchRewardsPerLevel[row][j];
+                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Gray;
+                }
+            }
+        }
+        private void RecreateRewardGrid(){
+            if (current_stagemap == null) return;
+            reward_tile_map.Clear();
+            reward_grid.RowDefinitions.Clear();
+            reward_grid.ColumnDefinitions.Clear();
+            reward_grid.Children.Clear();
+            for (int i = 0; i < curr_reward_rows; i++)
+                reward_grid.RowDefinitions.Add(new RowDefinition());
+            for (int i = 0; i < curr_reward_cols; i++)
+                reward_grid.ColumnDefinitions.Add(new ColumnDefinition());
+            
+
+            // Add Border elements to each cell for click event demonstration
+            for (int row = 0; row < curr_reward_rows; row++){
+                for (int col = 0; col < curr_reward_cols; col++){
+                    Border border = new Border{
+                        BorderBrush = Brushes.Black,
+                        BorderThickness = new Thickness(1)
+                    };
+                    border.MouseDown += RewardTile_MouseDown;
+                    border.MouseEnter += RewardTile_MouseEnter;
+                    border.MouseLeave += RewardTile_MouseLeave;
+
+                    string border_id = $"{curr_reward_rows-row-1}_{col}";
+                    reward_tile_map.Add(border_id, border);
+                    border.Tag = border_id;
+
+                    Grid.SetRow(border, row);
+                    Grid.SetColumn(border, col);
+                    reward_grid.Children.Add(border);
+                }
+            }
+        }
+
+
+        private void RewardTile_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void RewardTile_MouseEnter(object sender, MouseEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+        private void RewardTile_MouseLeave(object sender, MouseEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        #endregion
 
         #region static field interactions
         private void chosenField_TextChanged(object sender, TextChangedEventArgs e){
