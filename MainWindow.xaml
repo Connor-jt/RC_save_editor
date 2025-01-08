@@ -247,12 +247,16 @@
                             </Grid.RowDefinitions>
 
                             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible">
-                                <Grid x:Name="reward_grid" Margin="20">
-                                    
-                                </Grid>
+                                <StackPanel x:Name="reward_panel" Margin="20" HorizontalAlignment="Left" VerticalAlignment="Top">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Height="20" Width="20"/>
+                                        <Button Height="20" Width="20"/>
+                                        <Button Height="20" Width="20"/>
+                                    </StackPanel>
+                                </StackPanel>
                             </ScrollViewer>
 
-                            <Grid Grid.Row="0" Margin="12,2,2,2">
+                            <Grid x:Name="tile_info_panel"  Grid.Row="0" Margin="12,2,2,2">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="24"/>
                                     <RowDefinition Height="20"/>
@@ -269,7 +273,7 @@
                                         <ColumnDefinition Width="20"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Is Chosen: " VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <CheckBox  Grid.Column="1" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="tile_is_chosen"  Grid.Column="1" VerticalAlignment="Center"/>
                                 </Grid>
                                 <Grid Grid.Row="2">
                                     <Grid.ColumnDefinitions>
@@ -278,7 +282,19 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Reward Type: " VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <ComboBox  Grid.Column="1"/>
+                                    <ComboBox x:Name="tile_type_combobox"  Grid.Column="1">
+                                        <ComboBoxItem Content="None"/>
+                                        <ComboBoxItem Content="Shop"/>
+                                        <ComboBoxItem Content="Card"/>
+                                        <ComboBoxItem Content="Upgrade"/>
+                                        <ComboBoxItem Content="Relic"/>
+                                        <ComboBoxItem Content="Coins"/>
+                                        <ComboBoxItem Content="Start Crystals"/>
+                                        <ComboBoxItem Content="Lives"/>
+                                        <ComboBoxItem Content="Drops"/>
+                                        <ComboBoxItem Content="Research Points"/>
+                                        <ComboBoxItem Content="Research Reward"/>
+                                    </ComboBox>
                                 </Grid>
 
                                 <Grid Grid.Row="3">
@@ -287,7 +303,6 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="20"/>
                                         <ColumnDefinition Width="20"/>
-                                        <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
@@ -298,8 +313,8 @@
                                             <ComboBoxItem Content="1"/>
                                         </ComboBox>
                                     </StackPanel>
-                                    <Button Content="+" Grid.Column="2"/>
-                                    <Button Content="-" Grid.Column="3"/>
+                                    <Button x:Name="add_connection" Content="+" Grid.Column="2"/>
+                                    <Button x:Name="remove_connection" Content="-" Grid.Column="3"/>
                                 </Grid>
                             </Grid>
                             <Separator Grid.Row="1" Margin="0,0,0,0" VerticalAlignment="Top"/>

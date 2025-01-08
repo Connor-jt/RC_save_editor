@@ -21,6 +21,7 @@ using doody;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using static RC_save_editor.SaveGameInstance;
+using System.Net.WebSockets;
 
 
 
@@ -31,8 +32,23 @@ namespace RC_save_editor
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
-        {
+        public MainWindow(){
+            BrushConverter bconvertor = new BrushConverter();
+            shop_color             = (Brush)bconvertor.ConvertFrom("#ff3636");
+            card_color             = (Brush)bconvertor.ConvertFrom("#940ff1");
+            upgrade_color          = (Brush)bconvertor.ConvertFrom("#0f64ff");
+            relic_color            = (Brush)bconvertor.ConvertFrom("#00ef4a");
+            coin_color             = (Brush)bconvertor.ConvertFrom("#ffa63d");
+            crystal_color          = (Brush)bconvertor.ConvertFrom("#54c7ff");
+            drop_color             = (Brush)bconvertor.ConvertFrom("#98ff59");
+            lives_color            = (Brush)bconvertor.ConvertFrom("#ff0086");
+            research_points_color  = (Brush)bconvertor.ConvertFrom("#ff00f5");
+            research_rewards_color = (Brush)bconvertor.ConvertFrom("#ffcf00");
+
+            highlight_hover_color       = (Brush)bconvertor.ConvertFrom("#b800eb");
+            highlight_select_color      = (Brush)bconvertor.ConvertFrom("#700082");
+            highlight_connection_color  = (Brush)bconvertor.ConvertFrom("#ff00e2"); // 
+
             InitializeComponent();
             try{
                 LoadAllIDs("id_data\\");
@@ -974,24 +990,32 @@ namespace RC_save_editor
 
         int curr_reward_rows = 0;
         int curr_reward_cols = 0;
+        KeyValuePair<int, int>? hovered_coords = null;
+        KeyValuePair<int, int>? selected_coords = null;
         enum reward_type{
-            None,
-            Coin,
-            StartCrystal,
-            ResearchPoints,
-            Card,
-            Upgrade,
-            Relic,
-            Research
+            None = 0,
+            Shop = 1,
+            Card = 2,
+            Upgrade = 3,
+            Relic = 4,
+            Coin = 5,
+            StartCrystal = 6,
+            Lives = 7,
+            Drop = 8,
+            ResearchPoints = 9,
+            ResearchReward = 10
         }
         void LoadNewRewardMap(){
             if (current_stagemap == null) return;
             
+            
+            ClearSelectedTile();
+
             // check to see if our grid thingo needs to be recalculated
             if (current_stagemap.levelCount != curr_reward_rows || current_stagemap.maxWidth != curr_reward_cols){
                 curr_reward_rows = current_stagemap.levelCount;
                 curr_reward_cols = current_stagemap.maxWidth;
-                RecreateRewardGrid();
+                RecreateRewardGrid(); // this function also clears our selected tile, so it might double up
             }
             // then repaint
             RedrawRewardGrid();
@@ -1016,131 +1040,335 @@ namespace RC_save_editor
             
 
         }
+
+        #region UI colors
+        Brush shop_color;
+        Brush card_color;
+        Brush upgrade_color;
+        Brush relic_color;
+        Brush coin_color;
+        Brush crystal_color;
+        Brush drop_color;
+        Brush lives_color;
+        Brush research_points_color;
+        Brush research_rewards_color;
+
+        Brush highlight_hover_color;
+        Brush highlight_select_color;
+        Brush highlight_connection_color;
+        #endregion
         void RedrawRewardGrid(){
             if (current_stagemap == null) return;
             // update the visuals of each reward tile
-            foreach (var v in reward_tile_map)
+            foreach (var v in reward_tile_map){
                 v.Value.Background = Brushes.White;
+                v.Value.BorderBrush = Brushes.White;
+            }
+
+            
+            // update visuals for currently chosen tiles
+            for (int row = 0; row < current_stagemap.levelCount; row++)
+                if (current_stagemap.chosenPath.Count > row)
+                    reward_tile_map[$"{row}_{current_stagemap.chosenPath[row]}"].BorderBrush = Brushes.Black;
+
+            // update visuals for currently hovered tile
+            if (hovered_coords != null)
+                reward_tile_map[$"{hovered_coords.Value.Key}_{hovered_coords.Value.Value}"].BorderBrush = highlight_hover_color;
+
+            // update visuals for selected tile
+            if (selected_coords != null)
+                reward_tile_map[$"{selected_coords.Value.Key}_{selected_coords.Value.Value}"].BorderBrush = highlight_select_color;
+
+            // update connection visuals for tiles connected to hovered tile (skip tiles on row 0, since this only shows connections to prior layer, 0 has none)
+            if (hovered_coords != null && hovered_coords.Value.Key > 0){
+                int row = hovered_coords.Value.Key;
+                for (int i = 0; i < current_stagemap.connectionsPerLevel[row].Count; i++){
+                    var col = current_stagemap.connectionsPerLevel[row][i]; // key is 'lower layer column' value is 'current layer column'
+                    if (col.Value == hovered_coords.Value.Value)
+                        reward_tile_map[$"{row-1}_{col.Key}"].BorderBrush = highlight_connection_color;
+                }
+            }
+
+
 
             // shops
             for (int row = 0; row < current_stagemap.shopsPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.shopsPerLevel[row].Count; j++){
                     uint col = current_stagemap.shopsPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Red;
+                    reward_tile_map[$"{row}_{col}"].Background = shop_color;
                 }
             }
             // cards
             for (int row = 0; row < current_stagemap.cardRewardsPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.cardRewardsPerLevel[row].Count; j++){
                     uint col = current_stagemap.cardRewardsPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Purple;
+                    reward_tile_map[$"{row}_{col}"].Background = card_color;
                 }
             }
             // upgrades
             for (int row = 0; row < current_stagemap.upgradeRewardsPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.upgradeRewardsPerLevel[row].Count; j++){
                     uint col = current_stagemap.upgradeRewardsPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.DarkBlue;
+                    reward_tile_map[$"{row}_{col}"].Background = upgrade_color;
                 }
             }
             // relics
             for (int row = 0; row < current_stagemap.relicRewardsPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.relicRewardsPerLevel[row].Count; j++){
                     uint col = current_stagemap.relicRewardsPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Green;
+                    reward_tile_map[$"{row}_{col}"].Background = relic_color;
                 }
             }
             // coins
             for (int row = 0; row < current_stagemap.coinRewardsPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.coinRewardsPerLevel[row].Count; j++){
                     uint col = current_stagemap.coinRewardsPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Orange;
+                    reward_tile_map[$"{row}_{col}"].Background = coin_color;
                 }
             }
             // start crystals
             for (int row = 0; row < current_stagemap.startCrystalRewardsPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.startCrystalRewardsPerLevel[row].Count; j++){
                     uint col = current_stagemap.startCrystalRewardsPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.LightBlue;
+                    reward_tile_map[$"{row}_{col}"].Background = crystal_color;
                 }
             }
             // drops
             for (int row = 0; row < current_stagemap.dropRewardsPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.dropRewardsPerLevel[row].Count; j++){
                     uint col = current_stagemap.dropRewardsPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.LightGreen;
+                    reward_tile_map[$"{row}_{col}"].Background = drop_color;
                 }
             }
             // lives
             for (int row = 0; row < current_stagemap.restSitesPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.restSitesPerLevel[row].Count; j++){
                     uint col = current_stagemap.restSitesPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.HotPink;
+                    reward_tile_map[$"{row}_{col}"].Background = lives_color;
                 }
             }
             // research points
             for (int row = 0; row < current_stagemap.researchPointsRewardsPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.researchPointsRewardsPerLevel[row].Count; j++){
                     uint col = current_stagemap.researchPointsRewardsPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Yellow;
+                    reward_tile_map[$"{row}_{col}"].Background = research_points_color;
                 }
             }
             // research rewards
             for (int row = 0; row < current_stagemap.researchRewardsPerLevel.Count; row++){
                 for (int j = 0; j < current_stagemap.researchRewardsPerLevel[row].Count; j++){
                     uint col = current_stagemap.researchRewardsPerLevel[row][j];
-                    reward_tile_map[$"{row}_{col}"].Background = Brushes.Gray;
+                    reward_tile_map[$"{row}_{col}"].Background = research_rewards_color;
                 }
             }
         }
-        private void RecreateRewardGrid(){
+        void RecreateRewardGrid(){
             if (current_stagemap == null) return;
             reward_tile_map.Clear();
-            reward_grid.RowDefinitions.Clear();
-            reward_grid.ColumnDefinitions.Clear();
-            reward_grid.Children.Clear();
-            for (int i = 0; i < curr_reward_rows; i++)
-                reward_grid.RowDefinitions.Add(new RowDefinition());
-            for (int i = 0; i < curr_reward_cols; i++)
-                reward_grid.ColumnDefinitions.Add(new ColumnDefinition());
-            
+            reward_panel.Children.Clear();
 
-            // Add Border elements to each cell for click event demonstration
+            ClearSelectedTile();
+
+            List<StackPanel> row_panels = new();
+
             for (int row = 0; row < curr_reward_rows; row++){
+                StackPanel row_panel = new StackPanel{Orientation = Orientation.Horizontal};
+                if ((row & 1) == 1) row_panel.Margin = new Thickness(15, 0, 0, 0);
+                else                row_panel.Margin = new Thickness( 0, 0, 0, 0);
+                row_panels.Add(row_panel);
+
                 for (int col = 0; col < curr_reward_cols; col++){
+                    
                     Border border = new Border{
                         BorderBrush = Brushes.Black,
-                        BorderThickness = new Thickness(1)
+                        BorderThickness = new Thickness(2),
+                        Height = 30,
+                        Width = 30,
+                        Margin = new Thickness(2)
                     };
                     border.MouseDown += RewardTile_MouseDown;
                     border.MouseEnter += RewardTile_MouseEnter;
                     border.MouseLeave += RewardTile_MouseLeave;
 
-                    string border_id = $"{curr_reward_rows-row-1}_{col}";
+                    string border_id = $"{row}_{col}";
                     reward_tile_map.Add(border_id, border);
                     border.Tag = border_id;
 
                     Grid.SetRow(border, row);
                     Grid.SetColumn(border, col);
-                    reward_grid.Children.Add(border);
+                    row_panel.Children.Add(border);
                 }
+
+                // insert all rows in reverse order, so the layout is inverted just like how it is ingame
+                if (reward_panel.Children.Count == 0)
+                     reward_panel.Children.Add(row_panel);
+                else reward_panel.Children.Insert(0, row_panel);
             }
         }
 
+        void ClearSelectedTile(){ // NOTE:  the caller has to also call redraw grid after calling this
+            // we defo need to reset here
+            hovered_coords = null;
+            selected_coords = null;
+            // then reset all of the UI stuff?
+            tile_info_panel.Visibility = Visibility.Collapsed;
+        }
+        List<uint> possible_connections = new();
+        void RedrawSelectedTileInfo(){
+            if (selected_coords == null || current_stagemap == null) return;
+            // backup previous is loading state, incase this gets called mid loading and releases the load lock early
+            bool is_loading_more_infos = is_loading_stage_infos == true;
+            is_loading_stage_infos = true; 
 
-        private void RewardTile_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            //throw new NotImplementedException();
+            
+            add_connection.IsEnabled = true;
+            remove_connection.IsEnabled = true;
+            tile_info_panel.Visibility = Visibility.Visible;
+            tile_coords_row.Text = $"Row: {selected_coords.Value.Key}, Column: {selected_coords.Value.Value}";
+
+            // check if the selected column of our row in chosen array is us, if so then this one was chosen
+            tile_is_chosen.IsChecked =  (selected_coords.Value.Key < current_stagemap.chosenPath.Count
+                                     && current_stagemap.chosenPath[selected_coords.Value.Key] == selected_coords.Value.Value);
+
+            // figure out the type of this tile
+
+            reward_type tile_type = reward_type.None;
+            // check to see if tile is contained in the broad list first, if so then figure out which specific one we're in
+            foreach(uint col in current_stagemap.fieldsPerLevel[selected_coords.Value.Key]){
+                if (col == selected_coords.Value.Value){
+                    foreach(uint col2 in current_stagemap.shopsPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.Shop;
+                            goto skip_search;}}
+                    foreach(uint col2 in current_stagemap.cardRewardsPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.Card;
+                            goto skip_search;}}
+                    foreach(uint col2 in current_stagemap.upgradeRewardsPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.Upgrade;
+                            goto skip_search;}}
+                    foreach(uint col2 in current_stagemap.relicRewardsPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.Relic;
+                            goto skip_search;}}
+                    foreach(uint col2 in current_stagemap.coinRewardsPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.Coin;
+                            goto skip_search;}}
+                    foreach(uint col2 in current_stagemap.startCrystalRewardsPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.StartCrystal;
+                            goto skip_search;}}
+                    foreach(uint col2 in current_stagemap.restSitesPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.Lives;
+                            goto skip_search;}}
+                    foreach(uint col2 in current_stagemap.dropRewardsPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.Drop;
+                            goto skip_search;}}
+                    foreach(uint col2 in current_stagemap.researchPointsRewardsPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.ResearchPoints;
+                            goto skip_search;}}
+                    foreach(uint col2 in current_stagemap.researchRewardsPerLevel[selected_coords.Value.Key]){
+                        if (col2 == selected_coords.Value.Value){
+                            tile_type = reward_type.ResearchReward;
+                            goto skip_search;}}
+                    throw new Exception("tile was marked as having a valid type, but no type was found");
+            }}
+            skip_search:
+            tile_type_combobox.SelectedIndex = (int)tile_type;
+
+            // and lastly we need to validate possible connections
+            possible_connections.Clear();
+            if (selected_coords.Value.Key > 0){
+                
+                int row = selected_coords.Value.Key - 1;
+                for (uint col = 0; col < current_stagemap.maxWidth; col++){
+                    bool is_valid_connection = false;
+
+                    // verify that this tile has a valid type
+                    foreach(uint col2 in current_stagemap.fieldsPerLevel[row]){
+                        if (col2 == col) { 
+                            is_valid_connection = true;
+                            break;
+                    }}
+                    
+                    // verify that we dont already have a connection to this tile
+                    foreach(var connection in current_stagemap.connectionsPerLevel[selected_coords.Value.Key]){
+                        // if connection.from == our_column && connection.to == target_column
+                        if (connection.Value == selected_coords.Value.Value && connection.Key == col) { 
+                            is_valid_connection = false;
+                            break;
+                        }
+                    }
+
+                    if (is_valid_connection)
+                        possible_connections.Add(col);
+                }
+            }
+
+
+
+
+            // create all connections as combox boxi
+            connections_panel.Children.Clear();
+            int connections_count = 0;
+            foreach(var connection in current_stagemap.connectionsPerLevel[selected_coords.Value.Key]){
+                // if connection.from == our_column
+                if (connection.Value == selected_coords.Value.Value) { 
+                    connections_count++;
+                    // create a combobox to customize this
+                    ComboBox new_connection_selector = new();
+                    // then create their selection list thing
+                    List<string> comboc_items = [connection.Value.ToString()];
+                    foreach (var item in possible_connections)
+                        comboc_items.Add(item.ToString());
+
+                    new_connection_selector.ItemsSource = comboc_items;
+                    new_connection_selector.SelectedIndex = 0;
+                    new_connection_selector.SelectionChanged += ConnectionBoxChanged;
+                    connections_panel.Children.Add(new_connection_selector);
+                }
+            }
+            
+            // adjust interability states of add/remove depending on whether we can add or remove anymore
+            if (possible_connections.Count <= 0)
+                add_connection.IsEnabled = false;
+            if (connections_count == 0)
+                remove_connection.IsEnabled = false;
+
+            is_loading_stage_infos = is_loading_more_infos;
         }
 
-        private void RewardTile_MouseEnter(object sender, MouseEventArgs e)
+        private void ConnectionBoxChanged(object sender, SelectionChangedEventArgs e)
         {
-            //throw new NotImplementedException();
+            throw new NotImplementedException();
         }
-        private void RewardTile_MouseLeave(object sender, MouseEventArgs e)
-        {
-            //throw new NotImplementedException();
+
+        private void RewardTile_MouseDown(object sender, MouseButtonEventArgs e){
+            string[] coords_str = ((string)((Border)sender).Tag).Split("_");
+            selected_coords = new(int.Parse(coords_str[0]), int.Parse(coords_str[1]));
+            RedrawRewardGrid();
+            RedrawSelectedTileInfo();
         }
+
+        private void RewardTile_MouseEnter(object sender, MouseEventArgs e){
+            string[] coords_str = ((string)((Border)sender).Tag).Split("_");
+            hovered_coords = new(int.Parse(coords_str[0]), int.Parse(coords_str[1]));
+            RedrawRewardGrid();
+        }
+        private void RewardTile_MouseLeave(object sender, MouseEventArgs e){
+            // if this tile is still the hovered one, then clear it
+            if (hovered_coords != null
+            &&  (string)((Border)sender).Tag == $"{hovered_coords.Value.Key}_{hovered_coords.Value.Value}"){
+                hovered_coords = null;
+                RedrawRewardGrid();
+            }
+        }
+        
 
         #endregion
 
