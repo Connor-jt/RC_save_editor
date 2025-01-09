@@ -48,6 +48,7 @@ namespace RC_save_editor
             highlight_hover_color       = (Brush)bconvertor.ConvertFrom("#b800eb");
             highlight_select_color      = (Brush)bconvertor.ConvertFrom("#700082");
             highlight_connection_color  = (Brush)bconvertor.ConvertFrom("#ff00e2"); // 
+            highlight_connection_color_alt  = (Brush)bconvertor.ConvertFrom("#ffcb00"); // 
 
             InitializeComponent();
             try{
@@ -1000,8 +1001,8 @@ namespace RC_save_editor
             Relic = 4,
             Coin = 5,
             StartCrystal = 6,
-            Lives = 7,
-            Drop = 8,
+            Drop = 7,
+            Lives = 8,
             ResearchPoints = 9,
             ResearchReward = 10
         }
@@ -1056,6 +1057,7 @@ namespace RC_save_editor
         Brush highlight_hover_color;
         Brush highlight_select_color;
         Brush highlight_connection_color;
+        Brush highlight_connection_color_alt;
         #endregion
         void RedrawRewardGrid(){
             if (current_stagemap == null) return;
@@ -1086,8 +1088,15 @@ namespace RC_save_editor
                     var col = current_stagemap.connectionsPerLevel[row][i]; // key is 'lower layer column' value is 'current layer column'
                     if (col.Value == hovered_coords.Value.Value)
                         reward_tile_map[$"{row-1}_{col.Key}"].BorderBrush = highlight_connection_color;
-                }
-            }
+            }}
+            // if no hovered tile then revert to showing connections to selected tile
+            if (hovered_coords == null && selected_coords != null && selected_coords.Value.Key > 0){
+                int row = selected_coords.Value.Key;
+                for (int i = 0; i < current_stagemap.connectionsPerLevel[row].Count; i++){
+                    var col = current_stagemap.connectionsPerLevel[row][i]; // key is 'lower layer column' value is 'current layer column'
+                    if (col.Value == selected_coords.Value.Value)
+                        reward_tile_map[$"{row-1}_{col.Key}"].BorderBrush = highlight_connection_color_alt;
+            }}
 
 
 
@@ -1230,6 +1239,8 @@ namespace RC_save_editor
             tile_is_chosen.IsChecked =  (selected_coords.Value.Key < current_stagemap.chosenPath.Count
                                      && current_stagemap.chosenPath[selected_coords.Value.Key] == selected_coords.Value.Value);
 
+            tile_is_chosen.IsEnabled = (selected_coords.Value.Key <= current_stagemap.chosenPath.Count);
+
             // figure out the type of this tile
 
             reward_type tile_type = reward_type.None;
@@ -1280,6 +1291,8 @@ namespace RC_save_editor
             }}
             skip_search:
             tile_type_combobox.SelectedIndex = (int)tile_type;
+            if (tile_type == reward_type.None)
+                tile_is_chosen.IsEnabled = false;
 
             // and lastly we need to validate possible connections
             possible_connections.Clear();
@@ -1322,8 +1335,9 @@ namespace RC_save_editor
                     connections_count++;
                     // create a combobox to customize this
                     ComboBox new_connection_selector = new();
+                    new_connection_selector.Tag = connection.Key;
                     // then create their selection list thing
-                    List<string> comboc_items = [connection.Value.ToString()];
+                    List<string> comboc_items = [connection.Key.ToString()];
                     foreach (var item in possible_connections)
                         comboc_items.Add(item.ToString());
 
@@ -1343,9 +1357,158 @@ namespace RC_save_editor
             is_loading_stage_infos = is_loading_more_infos;
         }
 
-        private void ConnectionBoxChanged(object sender, SelectionChangedEventArgs e)
-        {
-            throw new NotImplementedException();
+        private void tile_is_chosen_Checked(object sender, RoutedEventArgs e){
+            if (current_stagemap == null || selected_coords == null || is_loading_stage_infos) return;
+            if (selected_coords.Value.Key > current_stagemap.chosenPath.Count)
+                NavigateToOutput("tried to apply set chosen path to entry thats beyond the next step in the path");
+
+            if (selected_coords.Value.Key == current_stagemap.chosenPath.Count)
+                 current_stagemap.chosenPath.Add((uint)selected_coords.Value.Value);
+            else current_stagemap.chosenPath.Insert(selected_coords.Value.Key, (uint)selected_coords.Value.Value);
+
+            RedrawRewardGrid();
+        }
+        private void tile_is_chosen_Unchecked(object sender, RoutedEventArgs e){
+            if (current_stagemap == null || selected_coords == null || is_loading_stage_infos) return;
+            // remove every entry at & past the current row that we've unchecked
+            clear_chosen_path_at_row(selected_coords.Value.Key);
+            RedrawRewardGrid();
+        }
+        void clear_chosen_path_at_row(int row){
+            while (current_stagemap.chosenPath.Count > row)
+                current_stagemap.chosenPath.RemoveAt(row);
+        }
+        
+        private void tile_type_combobox_SelectionChanged(object sender, SelectionChangedEventArgs e){
+            if (current_stagemap == null || selected_coords == null || is_loading_stage_infos) return;
+
+            // clear all possible instances of this item
+            filter_out(current_stagemap.fieldsPerLevel);
+            filter_out(current_stagemap.shopsPerLevel);
+            filter_out(current_stagemap.cardRewardsPerLevel);
+            filter_out(current_stagemap.upgradeRewardsPerLevel);
+            filter_out(current_stagemap.relicRewardsPerLevel);
+            filter_out(current_stagemap.coinRewardsPerLevel);
+            filter_out(current_stagemap.startCrystalRewardsPerLevel);
+            filter_out(current_stagemap.dropRewardsPerLevel);
+            filter_out(current_stagemap.restSitesPerLevel);
+            filter_out(current_stagemap.researchPointsRewardsPerLevel);
+            filter_out(current_stagemap.researchRewardsPerLevel);
+
+            // then write new value if we gave it something other than None
+            switch ((reward_type)tile_type_combobox.SelectedIndex){
+                case reward_type.Shop:           current_stagemap.shopsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);                  break;
+                case reward_type.Card:           current_stagemap.cardRewardsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);            break;
+                case reward_type.Upgrade:        current_stagemap.upgradeRewardsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);         break;
+                case reward_type.Relic:          current_stagemap.relicRewardsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);           break;
+                case reward_type.Coin:           current_stagemap.coinRewardsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);            break;
+                case reward_type.StartCrystal:   current_stagemap.startCrystalRewardsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);    break;
+                case reward_type.Drop:           current_stagemap.dropRewardsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);            break;
+                case reward_type.Lives:          current_stagemap.restSitesPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);              break;
+                case reward_type.ResearchPoints: current_stagemap.researchPointsRewardsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);  break;
+                case reward_type.ResearchReward: current_stagemap.researchRewardsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);        break;
+                default: break;
+            }
+            if ((reward_type)tile_type_combobox.SelectedIndex != reward_type.None)
+                current_stagemap.fieldsPerLevel[selected_coords.Value.Key].Add((uint)selected_coords.Value.Value);
+            // else if we just cleared the type of a tile, then we have to remove all references to it, so we dont accidently break anything with the game??
+            else{
+                // clear any connection referencing this (if not on the last row)
+                if (selected_coords.Value.Key+1 < current_stagemap.levelCount){
+                    var list = current_stagemap.connectionsPerLevel[selected_coords.Value.Key+1];
+                    for (int i = 0; i < list.Count; i++){
+                        // if lower layer of connection is our tile.column, then remove
+                        if (list[i].Key == selected_coords.Value.Value){
+                            list.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                }
+                // clear our own tiles connections (if not on the lowest layer)
+                if (selected_coords.Value.Key > 0){
+                    var list = current_stagemap.connectionsPerLevel[selected_coords.Value.Key];
+                    for (int i = 0; i < list.Count; i++){
+                        // if current layer of connection is our tile.column, then remove
+                        if (list[i].Value == selected_coords.Value.Value){
+                            list.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                }
+                // clear chosen path past this point if this tile was chosen
+                if (current_stagemap.chosenPath.Count > selected_coords.Value.Key
+                &&  current_stagemap.chosenPath[selected_coords.Value.Key] == selected_coords.Value.Value)
+                    clear_chosen_path_at_row(selected_coords.Value.Key);
+            }
+
+            RedrawRewardGrid();
+            RedrawSelectedTileInfo();
+        }
+        void filter_out(List<List<uint>> list){
+            for (int i = 0; i < list[selected_coords.Value.Key].Count; i++){
+                if (list[selected_coords.Value.Key][i] == selected_coords.Value.Value){
+                    list[selected_coords.Value.Key].RemoveAt(i);
+                    break;
+        }}}
+
+        private void ConnectionBoxChanged(object sender, SelectionChangedEventArgs e){
+            if (current_stagemap == null || selected_coords == null || is_loading_stage_infos) return;
+            uint original_connected_column = (uint)((ComboBox)sender).Tag;
+            // 
+            int selected_possible_connection = ((ComboBox)sender).SelectedIndex - 1;
+            if (selected_possible_connection < 0) return;
+
+            if (selected_possible_connection >= possible_connections.Count) return;
+            uint new_connected_column = possible_connections[selected_possible_connection];
+
+
+            // remove original
+            var list = current_stagemap.connectionsPerLevel[selected_coords.Value.Key];
+            int connection_slot_index = -1;
+            for (int i = 0; i < list.Count; i++){
+                // if connection.to == our column && connection.from == original_column
+                if (list[i].Value == selected_coords.Value.Value && list[i].Key == original_connected_column){
+                    list.RemoveAt(i);
+                    connection_slot_index = i;
+                    break;
+            }}
+            if (connection_slot_index < 0){
+                NavigateToOutput("the connection you were editing does not exist in the savegame data???");
+                return;
+            }
+
+            // then add our new connection via its old index
+            if (connection_slot_index >= list.Count)
+                 list.Add(new(new_connected_column, (uint)selected_coords.Value.Value));
+            else list.Insert(connection_slot_index, new(new_connected_column, (uint)selected_coords.Value.Value));
+
+
+            RedrawRewardGrid();
+            RedrawSelectedTileInfo();
+        }
+
+        private void add_connection_Click(object sender, RoutedEventArgs e){
+            if (current_stagemap == null || selected_coords == null || is_loading_stage_infos || possible_connections.Count <= 0) return;
+
+            current_stagemap.connectionsPerLevel[selected_coords.Value.Key].Add(new(possible_connections[0], (uint)selected_coords.Value.Value));
+            
+            RedrawRewardGrid();
+            RedrawSelectedTileInfo();
+        }
+        private void remove_connection_Click(object sender, RoutedEventArgs e){
+            if (current_stagemap == null || selected_coords == null || is_loading_stage_infos) return;
+
+            int last_index = -1;
+            var list = current_stagemap.connectionsPerLevel[selected_coords.Value.Key];
+            for (int i = 0; i < list.Count; i++)
+                if (list[i].Value == selected_coords.Value.Value)
+                    last_index = i;
+            
+            if (last_index >= 0)
+                list.RemoveAt(last_index);
+
+            RedrawRewardGrid();
+            RedrawSelectedTileInfo();
         }
 
         private void RewardTile_MouseDown(object sender, MouseButtonEventArgs e){

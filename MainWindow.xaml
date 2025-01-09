@@ -273,7 +273,7 @@
                                         <ColumnDefinition Width="20"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Is Chosen: " VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <CheckBox x:Name="tile_is_chosen"  Grid.Column="1" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="tile_is_chosen"  Grid.Column="1" VerticalAlignment="Center" Checked="tile_is_chosen_Checked" Unchecked="tile_is_chosen_Unchecked"/>
                                 </Grid>
                                 <Grid Grid.Row="2">
                                     <Grid.ColumnDefinitions>
@@ -282,7 +282,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Reward Type: " VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <ComboBox x:Name="tile_type_combobox"  Grid.Column="1">
+                                    <ComboBox x:Name="tile_type_combobox"  Grid.Column="1" SelectionChanged="tile_type_combobox_SelectionChanged">
                                         <ComboBoxItem Content="None"/>
                                         <ComboBoxItem Content="Shop"/>
                                         <ComboBoxItem Content="Card"/>
@@ -290,8 +290,8 @@
                                         <ComboBoxItem Content="Relic"/>
                                         <ComboBoxItem Content="Coins"/>
                                         <ComboBoxItem Content="Start Crystals"/>
-                                        <ComboBoxItem Content="Lives"/>
                                         <ComboBoxItem Content="Drops"/>
+                                        <ComboBoxItem Content="Lives"/>
                                         <ComboBoxItem Content="Research Points"/>
                                         <ComboBoxItem Content="Research Reward"/>
                                     </ComboBox>
@@ -313,8 +313,8 @@
                                             <ComboBoxItem Content="1"/>
                                         </ComboBox>
                                     </StackPanel>
-                                    <Button x:Name="add_connection" Content="+" Grid.Column="2"/>
-                                    <Button x:Name="remove_connection" Content="-" Grid.Column="3"/>
+                                    <Button x:Name="add_connection" Content="+" Grid.Column="2" Click="add_connection_Click"/>
+                                    <Button x:Name="remove_connection" Content="-" Grid.Column="3"  Click="remove_connection_Click"/>
                                 </Grid>
                             </Grid>
                             <Separator Grid.Row="1" Margin="0,0,0,0" VerticalAlignment="Top"/>
