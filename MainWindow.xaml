@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RC_save_editor"
         mc:Ignorable="d"
-        Title="MainWindow" Height="860" Width="650">
+        Title="RC Save Editor" Height="860" Width="650">
     <Grid>
 
         <Grid>
@@ -30,11 +30,11 @@
                         <MenuItem Header="_test json validity" Click="Menu_TestJson"/>
                     </MenuItem>
                 </MenuItem>
-                <MenuItem Header="_RC Profiles">
+                <MenuItem Header="_RC Profiles" SubmenuOpened="MenuItem_SubmenuOpened">
                     <MenuItem x:Name="profile_load"  Header="_Load Profile" IsEnabled="False">
-                        <MenuItem Header="_Profile 1" Click="LoadProfile1" />
-                        <MenuItem Header="_Profile 2" Click="LoadProfile2"/>
-                        <MenuItem Header="_Profile 3" Click="LoadProfile3"/>
+                        <MenuItem x:Name="profile_load_1" Header="_Profile 1" Click="LoadProfile1" />
+                        <MenuItem x:Name="profile_load_2" Header="_Profile 2" Click="LoadProfile2"/>
+                        <MenuItem x:Name="profile_load_3" Header="_Profile 3" Click="LoadProfile3"/>
                     </MenuItem>
                     <MenuItem x:Name="profile_save"  Header="_Save Profile" IsEnabled="False">
                         <MenuItem Header="_Profile 1" Click="SaveProfile1"/>
@@ -235,18 +235,19 @@
                     </Grid>
 
                     <!-- Stagemap data page-->
-                    <Grid x:Name="stagemap_list_page">
+                    <Grid x:Name="stagemap_list_page" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="3*"/>
                         </Grid.ColumnDefinitions>
                         <Grid Grid.Column="1">
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
                                 <RowDefinition Height="100"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible">
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Visible">
                                 <StackPanel x:Name="reward_panel" Margin="20" HorizontalAlignment="Left" VerticalAlignment="Top">
                                     <StackPanel Orientation="Horizontal">
                                         <Button Height="20" Width="20"/>
@@ -255,8 +256,13 @@
                                     </StackPanel>
                                 </StackPanel>
                             </ScrollViewer>
+                            <Grid>
+                                <TextBlock Text="Reward Map Editor" FontSize="16" Margin="5,3,0,0" />
 
-                            <Grid x:Name="tile_info_panel"  Grid.Row="0" Margin="12,2,2,2">
+                                <Separator Margin="0,0,0,0" VerticalAlignment="Bottom"/>
+                            </Grid>
+                            
+                            <Grid x:Name="tile_info_panel"  Grid.Row="1" Margin="12,2,2,2">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="24"/>
                                     <RowDefinition Height="20"/>
@@ -300,24 +306,24 @@
                                 <Grid Grid.Row="3">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="20"/>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="20"/>
-                                        <ColumnDefinition Width="20"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
 
                                     <TextBlock Grid.Column="0" Text="Connections: " VerticalAlignment="Center" />
-                                    <StackPanel Grid.Column="1" x:Name="connections_panel" Orientation="Horizontal" Margin="0,0,5,0">
+                                    <Button x:Name="add_connection" Content="+" Grid.Column="1" Click="add_connection_Click"/>
+                                    <Button x:Name="remove_connection" Content="-" Grid.Column="2"  Click="remove_connection_Click"/>
+                                    <StackPanel Grid.Column="3" x:Name="connections_panel" Orientation="Horizontal" Margin="5,0,0,0">
                                         <ComboBox SelectedIndex="0">
                                             <ComboBoxItem Content="1"/>
                                         </ComboBox>
                                     </StackPanel>
-                                    <Button x:Name="add_connection" Content="+" Grid.Column="2" Click="add_connection_Click"/>
-                                    <Button x:Name="remove_connection" Content="-" Grid.Column="3"  Click="remove_connection_Click"/>
                                 </Grid>
                             </Grid>
-                            <Separator Grid.Row="1" Margin="0,0,0,0" VerticalAlignment="Top"/>
+                            <Separator Grid.Row="2" Margin="0,0,0,0" VerticalAlignment="Top"/>
 
                         </Grid>
                         

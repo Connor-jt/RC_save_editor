@@ -47,8 +47,8 @@ namespace RC_save_editor
 
             highlight_hover_color       = (Brush)bconvertor.ConvertFrom("#b800eb");
             highlight_select_color      = (Brush)bconvertor.ConvertFrom("#700082");
-            highlight_connection_color  = (Brush)bconvertor.ConvertFrom("#ff00e2"); // 
-            highlight_connection_color_alt  = (Brush)bconvertor.ConvertFrom("#ffcb00"); // 
+            highlight_connection_color  = (Brush)bconvertor.ConvertFrom("#ff00e2");
+            highlight_connection_color_alt  = (Brush)bconvertor.ConvertFrom("#ff7e00");
 
             InitializeComponent();
             try{
@@ -180,9 +180,6 @@ namespace RC_save_editor
                         case "researchBranches":
                             break;
                         case "stageMap":
-                            // TODO: remove once we have a proper stage map editor
-                            savegame.stage_map = item.Value.ToString(Formatting.None); // this should hopefully just yoink the inner json text
-                            
                             savegame.currentStage = (int)item.Value.currentStage.Value;
                             foreach (var stage in item.Value.levelMaps){
                                 StageMap new_stage = new StageMap();
@@ -377,12 +374,107 @@ namespace RC_save_editor
                 // unused research branches thing
                 json.Append("\"researchBranches\":[],");
 
-            
-                json.Append("\"stageMap\":");
-                json.Append(savegame.stage_map);
-                json.Append("}");
+                // now for the big stagemap serializing
+                json.Append("\"stageMap\":{\"currentStage\":");
+                json.Append($"{savegame.currentStage},\"levelMaps\":[");
+                for (int i = 0; i < savegame.stages.Count; i++){
+                    if (i > 0) json.Append(",");
+                    var stage = savegame.stages[i];
+                    json.Append("{");
+                    json.Append($"\"chosenField\":{stage.chosenField},");
+                    json.Append($"\"levelCount\":{stage.levelCount},");
+                    json.Append($"\"maxWidth\":{stage.maxWidth},");
+                    json.Append($"\"coinReward\":{stage.coinReward},");
+                    json.Append($"\"startCrystalReward\":{stage.startCrystalReward},");
+                    json.Append($"\"researchPointsReward\":{stage.researchPointsReward},");
+                    json.Append($"\"currentLevel\":{stage.currentLevel},");
+                    json.Append($"\"currentField\":{stage.currentField},");
+                    if (stage.isCurrentLevelFinished)
+                         json.Append("\"isCurrentLevelFinished\":true,");
+                    else json.Append("\"isCurrentLevelFinished\":false,");
+                    json.Append($"\"bossAiPrefabName\":\"{stage.bossAiPrefabName}\",");
+                    json.Append($"\"bossWorldPrefabName\":\"{stage.bossWorldPrefabName}\",");
+                    json.Append($"\"bossMapScriptableObjectName\":\"{stage.bossMapScriptableObjectName}\",");
+
+                    json.Append("\"cardRewardParameters\":{");
+                    json.Append($"\"rarity\":{stage.cardRewardParameters.rarity},");
+                    json.Append($"\"rareProbability\":{stage.cardRewardParameters.rareProbability},");
+                    json.Append($"\"ultraRareProbability\":{stage.cardRewardParameters.ultraRareProbability}");
+                    json.Append("},");
+
+                    json.Append("\"upgradeRewardParameters\":{");
+                    json.Append($"\"rarity\":{stage.upgradeRewardParameters.rarity},");
+                    json.Append($"\"rareProbability\":{stage.upgradeRewardParameters.rareProbability},");
+                    json.Append($"\"ultraRareProbability\":{stage.upgradeRewardParameters.ultraRareProbability}");
+                    json.Append("},");
+
+                    json.Append("\"relicRewardParameters\":{");
+                    json.Append($"\"rarity\":{stage.relicRewardParameters.rarity},");
+                    json.Append($"\"rareProbability\":{stage.relicRewardParameters.rareProbability},");
+                    json.Append($"\"ultraRareProbability\":{stage.relicRewardParameters.ultraRareProbability}");
+                    json.Append("},");
+
+                    json.Append("\"researchRewardParameters\":{");
+                    json.Append($"\"rarity\":{stage.researchRewardParameters.rarity},");
+                    json.Append($"\"rareProbability\":{stage.researchRewardParameters.rareProbability},");
+                    json.Append($"\"ultraRareProbability\":{stage.researchRewardParameters.ultraRareProbability}");
+                    json.Append("},");
+                    
+                    json.Append("\"shopScenes\":");
+                    json.Append($"{stage.shopScenes}");
+                    json.Append(",");
+
+
+                    json.Append("\"connectionsPerLevel\":[");
+                    for (int j = 0; j < stage.connectionsPerLevel.Count; j++){
+                        if (j > 0) json.Append(",");
+                        json.Append("[");
+                        for (int k = 0; k < stage.connectionsPerLevel[j].Count; k++){
+                            if (k > 0) json.Append(",");
+                            json.Append($"[{stage.connectionsPerLevel[j][k].Key},{stage.connectionsPerLevel[j][k].Value}]");
+                        }
+                        json.Append("]");
+                    }
+                    json.Append("],");
+                    
+                    json.Append("\"chosenPath\":[");
+                    for (int j = 0; j < stage.chosenPath.Count; j++){
+                        if (j > 0) json.Append(",");
+                        json.Append($"{stage.chosenPath[j]}");
+                    }
+                    json.Append("],");
+                    
+                    serialize_listlistuint("fieldsPerLevel", stage.fieldsPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("shopsPerLevel", stage.shopsPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("cardRewardsPerLevel", stage.cardRewardsPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("upgradeRewardsPerLevel", stage.upgradeRewardsPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("relicRewardsPerLevel", stage.relicRewardsPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("coinRewardsPerLevel", stage.coinRewardsPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("startCrystalRewardsPerLevel", stage.startCrystalRewardsPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("dropRewardsPerLevel", stage.dropRewardsPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("restSitesPerLevel", stage.restSitesPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("researchPointsRewardsPerLevel", stage.researchPointsRewardsPerLevel, stage, json); json.Append(",");
+                    serialize_listlistuint("researchRewardsPerLevel", stage.researchRewardsPerLevel, stage, json);
+
+                    json.Append("}");
+                }
+
+                json.Append("]}}"); // closes levelmap, stagemaps & document
                 return json.ToString();
             } catch (Exception ex){ NavigateToOutput(ex.ToString()); return "";}
+        }
+        void serialize_listlistuint(string name, List<List<uint>> list, StageMap stage, StringBuilder json){
+            json.Append($"\"{name}\":[");
+            for (int j = 0; j < list.Count; j++){
+                if (j > 0) json.Append(",");
+                json.Append("[");
+                for (int k = 0; k < list[j].Count; k++){
+                    if (k > 0) json.Append(",");
+                    json.Append($"{list[j][k]}");
+                }
+                json.Append("]");
+            }
+            json.Append("]");
         }
         #endregion
 
@@ -885,7 +977,7 @@ namespace RC_save_editor
             int new_index = 0;
             List<string> new_list = new List<string>();
             for (int i = 0; i < savegame.stages.Count; i++){
-                new_list.Add($"[{i}] {savegame.stages[i].bossMapScriptableObjectName}");
+                new_list.Add($"[{i+1}] {savegame.stages[i].bossMapScriptableObjectName}");
                 if (savegame.stages[i] == current_stagemap)
                     new_index = i;
             }
@@ -1026,21 +1118,90 @@ namespace RC_save_editor
             // if no change, skip
             if (rows == curr_reward_rows && columns == curr_reward_cols)
                 return;
+            // if too small, skip
+            if (rows < 1 || columns < 1)
+                return;
 
-            // if the columns increased, then we dont need to do anything
-            // if columns decreased, then we need to search through all the arrays and remove those indicies
 
             // if rows decreased, remove last list in each thingo
+            while (curr_reward_rows > rows){
+                curr_reward_rows--;
+                current_stagemap.fieldsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.shopsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.cardRewardsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.upgradeRewardsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.relicRewardsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.coinRewardsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.startCrystalRewardsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.dropRewardsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.restSitesPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.researchPointsRewardsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.researchRewardsPerLevel.RemoveAt(curr_reward_rows);
+                current_stagemap.connectionsPerLevel.RemoveAt(curr_reward_rows);
+            }
             // if rows increased, add new list to each
-            
-            // regenerate the reward tile map if the size has changed
-            curr_reward_rows = rows;
-            curr_reward_cols = columns;
+            while (curr_reward_rows < rows){
+                curr_reward_rows++;
+                current_stagemap.fieldsPerLevel.Add(new());
+                current_stagemap.shopsPerLevel.Add(new());
+                current_stagemap.cardRewardsPerLevel.Add(new());
+                current_stagemap.upgradeRewardsPerLevel.Add(new());
+                current_stagemap.relicRewardsPerLevel.Add(new());
+                current_stagemap.coinRewardsPerLevel.Add(new());
+                current_stagemap.startCrystalRewardsPerLevel.Add(new());
+                current_stagemap.dropRewardsPerLevel.Add(new());
+                current_stagemap.restSitesPerLevel.Add(new());
+                current_stagemap.researchPointsRewardsPerLevel.Add(new());
+                current_stagemap.researchRewardsPerLevel.Add(new());
+                current_stagemap.connectionsPerLevel.Add(new());
+            }
+
+            // if columns decreased, then we need to search through all the arrays and remove those indicies
+            if (columns < curr_reward_cols){
+                curr_reward_cols = columns;
+                // validate all column types
+                revalidate_all_column_references(current_stagemap.fieldsPerLevel);
+                revalidate_all_column_references(current_stagemap.shopsPerLevel);
+                revalidate_all_column_references(current_stagemap.cardRewardsPerLevel);
+                revalidate_all_column_references(current_stagemap.upgradeRewardsPerLevel);
+                revalidate_all_column_references(current_stagemap.relicRewardsPerLevel);
+                revalidate_all_column_references(current_stagemap.coinRewardsPerLevel);
+                revalidate_all_column_references(current_stagemap.startCrystalRewardsPerLevel);
+                revalidate_all_column_references(current_stagemap.dropRewardsPerLevel);
+                revalidate_all_column_references(current_stagemap.restSitesPerLevel);
+                revalidate_all_column_references(current_stagemap.researchPointsRewardsPerLevel);
+                revalidate_all_column_references(current_stagemap.researchRewardsPerLevel);
+                // then validate all connections
+                for (int row = 0; row < current_stagemap.connectionsPerLevel.Count; row++){
+                    for (int j = 0; j < current_stagemap.connectionsPerLevel[row].Count; j++){
+                        if (current_stagemap.connectionsPerLevel[row][j].Key   >= curr_reward_cols
+                        ||  current_stagemap.connectionsPerLevel[row][j].Value >= curr_reward_cols){
+                            current_stagemap.connectionsPerLevel[row].RemoveAt(j);
+                            j--;
+                }}}
+                // also validate our chosen path
+                for (int row = 0; row < current_stagemap.chosenPath.Count; row++){
+                    if (current_stagemap.chosenPath[row] >= curr_reward_cols){
+                        clear_chosen_path_at_row(row);
+                        break; // not particularly necessary, but it also doesn't hurt
+                }}
+            }
+            // if the columns increased, then we dont need to do anything
+            if (columns > curr_reward_cols)
+            {
+                curr_reward_cols = columns;
+            }
+
             RecreateRewardGrid();
             RedrawRewardGrid();
-            
-
         }
+        void revalidate_all_column_references(List<List<uint>> list){
+            for (int row = 0; row < list.Count; row++){
+                for (int j = 0; j < list[row].Count; j++){
+                    if (list[row][j] >= curr_reward_cols){
+                        list[row].RemoveAt(j);
+                        j--;
+        }}}}
 
         #region UI colors
         Brush shop_color;
@@ -1095,7 +1256,7 @@ namespace RC_save_editor
                 for (int i = 0; i < current_stagemap.connectionsPerLevel[row].Count; i++){
                     var col = current_stagemap.connectionsPerLevel[row][i]; // key is 'lower layer column' value is 'current layer column'
                     if (col.Value == selected_coords.Value.Value)
-                        reward_tile_map[$"{row-1}_{col.Key}"].BorderBrush = highlight_connection_color_alt;
+                        reward_tile_map[$"{row-1}_{col.Key}"].BorderBrush = highlight_connection_color;
             }}
 
 
@@ -1291,68 +1452,71 @@ namespace RC_save_editor
             }}
             skip_search:
             tile_type_combobox.SelectedIndex = (int)tile_type;
-            if (tile_type == reward_type.None)
-                tile_is_chosen.IsEnabled = false;
 
-            // and lastly we need to validate possible connections
             possible_connections.Clear();
-            if (selected_coords.Value.Key > 0){
-                
-                int row = selected_coords.Value.Key - 1;
-                for (uint col = 0; col < current_stagemap.maxWidth; col++){
-                    bool is_valid_connection = false;
-
-                    // verify that this tile has a valid type
-                    foreach(uint col2 in current_stagemap.fieldsPerLevel[row]){
-                        if (col2 == col) { 
-                            is_valid_connection = true;
-                            break;
-                    }}
-                    
-                    // verify that we dont already have a connection to this tile
-                    foreach(var connection in current_stagemap.connectionsPerLevel[selected_coords.Value.Key]){
-                        // if connection.from == our_column && connection.to == target_column
-                        if (connection.Value == selected_coords.Value.Value && connection.Key == col) { 
-                            is_valid_connection = false;
-                            break;
-                        }
-                    }
-
-                    if (is_valid_connection)
-                        possible_connections.Add(col);
-                }
-            }
-
-
-
-
-            // create all connections as combox boxi
             connections_panel.Children.Clear();
-            int connections_count = 0;
-            foreach(var connection in current_stagemap.connectionsPerLevel[selected_coords.Value.Key]){
-                // if connection.from == our_column
-                if (connection.Value == selected_coords.Value.Value) { 
-                    connections_count++;
-                    // create a combobox to customize this
-                    ComboBox new_connection_selector = new();
-                    new_connection_selector.Tag = connection.Key;
-                    // then create their selection list thing
-                    List<string> comboc_items = [connection.Key.ToString()];
-                    foreach (var item in possible_connections)
-                        comboc_items.Add(item.ToString());
+            if (tile_type == reward_type.None){
+                tile_is_chosen.IsEnabled = false;
+                add_connection.IsEnabled = false;
+                remove_connection.IsEnabled = false;
 
-                    new_connection_selector.ItemsSource = comboc_items;
-                    new_connection_selector.SelectedIndex = 0;
-                    new_connection_selector.SelectionChanged += ConnectionBoxChanged;
-                    connections_panel.Children.Add(new_connection_selector);
+            // we do not bother generating possible connections when the current tile is of type None
+            // since we aren't going to allow the user to make connections to none tiles
+            } else{
+                // and lastly we need to validate possible connections
+                if (selected_coords.Value.Key > 0){
+                
+                    int row = selected_coords.Value.Key - 1;
+                    for (uint col = 0; col < current_stagemap.maxWidth; col++){
+                        bool is_valid_connection = false;
+
+                        // verify that this tile has a valid type
+                        foreach(uint col2 in current_stagemap.fieldsPerLevel[row]){
+                            if (col2 == col) { 
+                                is_valid_connection = true;
+                                break;
+                        }}
+                    
+                        // verify that we dont already have a connection to this tile
+                        foreach(var connection in current_stagemap.connectionsPerLevel[selected_coords.Value.Key]){
+                            // if connection.from == our_column && connection.to == target_column
+                            if (connection.Value == selected_coords.Value.Value && connection.Key == col) { 
+                                is_valid_connection = false;
+                                break;
+                            }
+                        }
+
+                        if (is_valid_connection)
+                            possible_connections.Add(col);
+                    }
                 }
+                // create all connections as combox boxi
+                int connections_count = 0;
+                foreach(var connection in current_stagemap.connectionsPerLevel[selected_coords.Value.Key]){
+                    // if connection.from == our_column
+                    if (connection.Value == selected_coords.Value.Value) { 
+                        connections_count++;
+                        // create a combobox to customize this
+                        ComboBox new_connection_selector = new();
+                        new_connection_selector.Tag = connection.Key;
+                        // then create their selection list thing
+                        List<string> comboc_items = [connection.Key.ToString()];
+                        foreach (var item in possible_connections)
+                            comboc_items.Add(item.ToString());
+
+                        new_connection_selector.ItemsSource = comboc_items;
+                        new_connection_selector.SelectedIndex = 0;
+                        new_connection_selector.SelectionChanged += ConnectionBoxChanged;
+                        connections_panel.Children.Add(new_connection_selector);
+                    }
+                }
+                // adjust interability states of add/remove depending on whether we can add or remove anymore
+                if (possible_connections.Count <= 0)
+                    add_connection.IsEnabled = false;
+                if (connections_count == 0)
+                    remove_connection.IsEnabled = false;
             }
             
-            // adjust interability states of add/remove depending on whether we can add or remove anymore
-            if (possible_connections.Count <= 0)
-                add_connection.IsEnabled = false;
-            if (connections_count == 0)
-                remove_connection.IsEnabled = false;
 
             is_loading_stage_infos = is_loading_more_infos;
         }
@@ -1362,9 +1526,9 @@ namespace RC_save_editor
             if (selected_coords.Value.Key > current_stagemap.chosenPath.Count)
                 NavigateToOutput("tried to apply set chosen path to entry thats beyond the next step in the path");
 
-            if (selected_coords.Value.Key == current_stagemap.chosenPath.Count)
-                 current_stagemap.chosenPath.Add((uint)selected_coords.Value.Value);
-            else current_stagemap.chosenPath.Insert(selected_coords.Value.Key, (uint)selected_coords.Value.Value);
+            // clear all other check thingos beyond this ones
+            clear_chosen_path_at_row(selected_coords.Value.Key);
+            current_stagemap.chosenPath.Add((uint)selected_coords.Value.Value);
 
             RedrawRewardGrid();
         }
@@ -1536,6 +1700,17 @@ namespace RC_save_editor
         #endregion
 
         #region static field interactions
+        private void levelCount_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            if (handle_int_min_change(levelCount, ref current_stagemap.levelCount, 1))
+                ResizeRewardmapData(current_stagemap.levelCount, current_stagemap.maxWidth);
+        }
+        private void maxWidth_TextChanged(object sender, TextChangedEventArgs e){
+            if (is_loading_stage_infos || current_stagemap == null) return;
+            if (handle_int_min_change(maxWidth, ref current_stagemap.maxWidth, 1))
+                ResizeRewardmapData(current_stagemap.levelCount, current_stagemap.maxWidth);
+        }
+
         private void chosenField_TextChanged(object sender, TextChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
             handle_int_change(chosenField, ref current_stagemap.chosenField);}
@@ -1545,12 +1720,6 @@ namespace RC_save_editor
         private void currentField_TextChanged(object sender, TextChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
             handle_int_change(currentField, ref current_stagemap.currentField);}
-        private void levelCount_TextChanged(object sender, TextChangedEventArgs e){
-            if (is_loading_stage_infos || current_stagemap == null) return;
-            handle_int_change(levelCount, ref current_stagemap.levelCount);}
-        private void maxWidth_TextChanged(object sender, TextChangedEventArgs e){
-            if (is_loading_stage_infos || current_stagemap == null) return;
-            handle_int_change(maxWidth, ref current_stagemap.maxWidth);}
         private void coinReward_TextChanged(object sender, TextChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
             handle_int_change(coinReward, ref current_stagemap.coinReward);}
@@ -1648,6 +1817,14 @@ namespace RC_save_editor
                 write_to_value = result;
                 field.Foreground = Brushes.Black;
             } else field.Foreground = Brushes.Red;
+        }
+        bool handle_int_min_change(TextBox field, ref int write_to_value, int min){
+            if (int.TryParse(field.Text, out int result) && result >= min){
+                write_to_value = result;
+                field.Foreground = Brushes.Black;
+                return true;
+            } else field.Foreground = Brushes.Red;
+            return false;
         }
         void handle_float_change(TextBox field, ref float write_to_value){
             if (float.TryParse(field.Text, out float result)){
@@ -1879,7 +2056,12 @@ namespace RC_save_editor
         void SaveProfile2(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile2\\savegame.dat");
         void SaveProfile3(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile3\\savegame.dat");
         
-
+        private void MenuItem_SubmenuOpened(object sender, RoutedEventArgs e) => CheckForValidProfiles();
+        void CheckForValidProfiles(){
+            profile_load_1.IsEnabled = File.Exists(game_folder + "\\Profiles\\Profile1\\savegame.dat");
+            profile_load_2.IsEnabled = File.Exists(game_folder + "\\Profiles\\Profile2\\savegame.dat");
+            profile_load_3.IsEnabled = File.Exists(game_folder + "\\Profiles\\Profile3\\savegame.dat");
+        }
 
         void VerifyGameFolder(string folder){
             if (!Directory.Exists(folder + "\\Profiles"))
@@ -1924,8 +2106,6 @@ namespace RC_save_editor
             if (!File.Exists("game_path.txt"))
                 File.WriteAllText("game_path.txt", "");
         }
-
         #endregion
-
     }
 }

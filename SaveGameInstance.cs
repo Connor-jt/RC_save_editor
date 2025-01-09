@@ -140,8 +140,5 @@ namespace RC_save_editor{
 
             }
         }
-
-        public string stage_map = ""; // we don't even bother deserializing this, just copy the inner json text
-
     }
 }
