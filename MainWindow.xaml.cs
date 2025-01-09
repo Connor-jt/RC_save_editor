@@ -1695,22 +1695,38 @@ namespace RC_save_editor
                 RedrawRewardGrid();
             }
         }
-        
+
 
         #endregion
 
-        #region static field interactions
-        private void levelCount_TextChanged(object sender, TextChangedEventArgs e){
+        #region reward map resize fields
+        //private void levelCount_TextChanged(object sender, TextChangedEventArgs e){
+        //    if (is_loading_stage_infos || current_stagemap == null) return;
+        //    if (handle_int_min_change(levelCount, ref current_stagemap.levelCount, 1))
+        //        ResizeRewardmapData(current_stagemap.levelCount, current_stagemap.maxWidth);
+        //}
+        //private void maxWidth_TextChanged(object sender, TextChangedEventArgs e){
+        //    if (is_loading_stage_infos || current_stagemap == null) return;
+        //    if (handle_int_min_change(maxWidth, ref current_stagemap.maxWidth, 1))
+        //        ResizeRewardmapData(current_stagemap.levelCount, current_stagemap.maxWidth);
+        //}
+        private void levelCount_KeyDown(object sender, KeyEventArgs e){
+            if (e.Key != Key.Enter) return;
+
             if (is_loading_stage_infos || current_stagemap == null) return;
             if (handle_int_min_change(levelCount, ref current_stagemap.levelCount, 1))
                 ResizeRewardmapData(current_stagemap.levelCount, current_stagemap.maxWidth);
         }
-        private void maxWidth_TextChanged(object sender, TextChangedEventArgs e){
+        private void maxWidth_KeyDown(object sender, KeyEventArgs e){
+            if (e.Key != Key.Enter) return; 
+
             if (is_loading_stage_infos || current_stagemap == null) return;
             if (handle_int_min_change(maxWidth, ref current_stagemap.maxWidth, 1))
                 ResizeRewardmapData(current_stagemap.levelCount, current_stagemap.maxWidth);
         }
+        #endregion
 
+        #region static field interactions
         private void chosenField_TextChanged(object sender, TextChangedEventArgs e){
             if (is_loading_stage_infos || current_stagemap == null) return;
             handle_int_change(chosenField, ref current_stagemap.chosenField);}
@@ -2048,14 +2064,28 @@ namespace RC_save_editor
         void LoadProfile2(object sender, RoutedEventArgs e) => TryLoadProfile(game_folder + "\\Profiles\\Profile2\\savegame.dat");
         void LoadProfile3(object sender, RoutedEventArgs e) => TryLoadProfile(game_folder + "\\Profiles\\Profile3\\savegame.dat");
         void TryLoadProfile(string path){
+            if (current_view != view_mode.None){
+                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show("Discard unsaved changes?", "Discard Changes Confirmation", System.Windows.MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (messageBoxResult != MessageBoxResult.Yes) return;
+            }
+
             try{LoadEncrypted_Path(path);
             } catch (Exception ex){ NavigateToOutput(ex.ToString()); }
         }
 
-        void SaveProfile1(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile1\\savegame.dat");
-        void SaveProfile2(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile2\\savegame.dat");
-        void SaveProfile3(object sender, RoutedEventArgs e) => WriteSaveGameFile(game_folder + "\\Profiles\\Profile3\\savegame.dat");
+        void SaveProfile1(object sender, RoutedEventArgs e) => PromptSaveFile(game_folder + "\\Profiles\\Profile1\\savegame.dat");
+        void SaveProfile2(object sender, RoutedEventArgs e) => PromptSaveFile(game_folder + "\\Profiles\\Profile2\\savegame.dat");
+        void SaveProfile3(object sender, RoutedEventArgs e) => PromptSaveFile(game_folder + "\\Profiles\\Profile3\\savegame.dat");
         
+        void PromptSaveFile(string path){
+            if (File.Exists(path)){
+                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show("Overwrite existing file?", "Overwrite File Confirmation", System.Windows.MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (messageBoxResult != MessageBoxResult.Yes) return;
+            }
+
+            WriteSaveGameFile(path);
+        }
+
         private void MenuItem_SubmenuOpened(object sender, RoutedEventArgs e) => CheckForValidProfiles();
         void CheckForValidProfiles(){
             profile_load_1.IsEnabled = File.Exists(game_folder + "\\Profiles\\Profile1\\savegame.dat");
@@ -2107,5 +2137,6 @@ namespace RC_save_editor
                 File.WriteAllText("game_path.txt", "");
         }
         #endregion
+
     }
 }
