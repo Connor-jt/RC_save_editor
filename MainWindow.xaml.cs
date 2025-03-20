@@ -1046,7 +1046,7 @@ namespace RC_save_editor
         }
         private void SetCurrentStage_click(object sender, RoutedEventArgs e){
             savegame.currentStage = assigned_stageview.SelectedIndex;
-            select_stage_box.Text = $"Select Stage (Active: {savegame.currentStage})";
+            select_stage_box.Text = $"Select Stage (Active: {savegame.currentStage+1})";
         }
 
         private void UpStage_click(object sender, RoutedEventArgs e){ // decrements index
