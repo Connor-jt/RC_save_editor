@@ -22,6 +22,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using static RC_save_editor.SaveGameInstance;
 using System.Net.WebSockets;
+using System.Globalization;
 
 
 
@@ -398,26 +399,26 @@ namespace RC_save_editor
 
                     json.Append("\"cardRewardParameters\":{");
                     json.Append($"\"rarity\":{stage.cardRewardParameters.rarity},");
-                    json.Append($"\"rareProbability\":{stage.cardRewardParameters.rareProbability},");
-                    json.Append($"\"ultraRareProbability\":{stage.cardRewardParameters.ultraRareProbability}");
+                    json.Append($"\"rareProbability\":{stage.cardRewardParameters.rareProbability.ToString(CultureInfo.InvariantCulture)},");
+                    json.Append($"\"ultraRareProbability\":{stage.cardRewardParameters.ultraRareProbability.ToString(CultureInfo.InvariantCulture)}");
                     json.Append("},");
 
                     json.Append("\"upgradeRewardParameters\":{");
                     json.Append($"\"rarity\":{stage.upgradeRewardParameters.rarity},");
-                    json.Append($"\"rareProbability\":{stage.upgradeRewardParameters.rareProbability},");
-                    json.Append($"\"ultraRareProbability\":{stage.upgradeRewardParameters.ultraRareProbability}");
+                    json.Append($"\"rareProbability\":{stage.upgradeRewardParameters.rareProbability.ToString(CultureInfo.InvariantCulture)},");
+                    json.Append($"\"ultraRareProbability\":{stage.upgradeRewardParameters.ultraRareProbability.ToString(CultureInfo.InvariantCulture)}");
                     json.Append("},");
 
                     json.Append("\"relicRewardParameters\":{");
                     json.Append($"\"rarity\":{stage.relicRewardParameters.rarity},");
-                    json.Append($"\"rareProbability\":{stage.relicRewardParameters.rareProbability},");
-                    json.Append($"\"ultraRareProbability\":{stage.relicRewardParameters.ultraRareProbability}");
+                    json.Append($"\"rareProbability\":{stage.relicRewardParameters.rareProbability.ToString(CultureInfo.InvariantCulture)},");
+                    json.Append($"\"ultraRareProbability\":{stage.relicRewardParameters.ultraRareProbability.ToString(CultureInfo.InvariantCulture)}");
                     json.Append("},");
 
                     json.Append("\"researchRewardParameters\":{");
                     json.Append($"\"rarity\":{stage.researchRewardParameters.rarity},");
-                    json.Append($"\"rareProbability\":{stage.researchRewardParameters.rareProbability},");
-                    json.Append($"\"ultraRareProbability\":{stage.researchRewardParameters.ultraRareProbability}");
+                    json.Append($"\"rareProbability\":{stage.researchRewardParameters.rareProbability.ToString(CultureInfo.InvariantCulture)},");
+                    json.Append($"\"ultraRareProbability\":{stage.researchRewardParameters.ultraRareProbability.ToString(CultureInfo.InvariantCulture)}");
                     json.Append("},");
                     
                     json.Append("\"shopScenes\":");
@@ -1001,7 +1002,7 @@ namespace RC_save_editor
             RedrawArrowButtons();
 
             // also update the active stage index (doing it here because it doesn't need to refresh with every selected stage change)
-            select_stage_box.Text = $"Select Stage (Active: {savegame.currentStage})";
+            select_stage_box.Text = $"Select Stage (Active: {savegame.currentStage+1})";
 
             if (current_stagemap == null)
                 ReloadStagemaps(savegame.stages[new_index]); // this will always be 0

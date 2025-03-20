@@ -88,4 +88,4 @@ Explodes and *Stunned:Stuns* for $Duration1$ sec. when an *Enemies: Enemy* walks
 *Global: Global*
 Activate skill to attack.	vampirewalker	Passively spawns 3 #SpiderSpawn# as protection.	vampirewalkerfactory		vampwalkerskillegg	Hatches after $VampireWalker:Duration2$ sec. and spawns 5 #SpiderSpawn#.
  Attack *Slow:Slows* $Duration1$ sec.	wallblock		weathereffect		weathereffectemp		weathereffectvolcaniceruption		weathereffectheatwave		weathereffectacidicclouds		weathertower	*Global: Global*	weldingjeep	*Attack: Attack*: *Burning: Burn* target for 1 sec.
-Double damage against *Shield: Shields*.	weldingjeepfactory
+Double damage against *Shield: Shields*.	weldingjeepfactory		
